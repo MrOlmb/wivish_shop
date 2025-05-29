@@ -1,28 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Barlow } from "next/font/google";
 import "./globals.css";
+import {interFont, barlowFont } from "./fonts"
 
-// Fonts
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const barlowFont = Barlow({
-  variable: "--font-barlow",
-  subsets: ["latin"],
-  weight: ["500", "700"],
-});
 
 // Metadata
 export const metadata: Metadata = {
   title: "Wivish Shop",
-  description: "Your one and only B2B shop to source products from China.",
+  description: "Your one and only shop to source the best products from China.",
 };
 
 export default function RootLayout({
@@ -31,10 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${barlowFont.variable} antialiased`}
-      >
+    <html lang="en" className={`${interFont.variable} ${barlowFont.variable} antialiased`}>
+      <body>
         {children}
       </body>
     </html>
