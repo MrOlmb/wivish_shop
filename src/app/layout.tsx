@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import {interFont, barlowFont } from "./fonts"
+
+//global styles imports
+import "./globals.css";
 
 
 // Metadata
@@ -15,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${interFont.variable} ${barlowFont.variable} antialiased`}>
-      <body>
+    <html lang="en">
+      <body className={`${interFont.variable} ${barlowFont.variable}`}>
         {children}
       </body>
     </html>
