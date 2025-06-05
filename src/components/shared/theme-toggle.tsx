@@ -32,12 +32,11 @@ export default function ThemeToggle() {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="w-10 h-10 rounded-full">
-                    <SunIcon className={`h-[1.4rem] w-[1.4rem] rotate-0 scale-100 transition-all ${
-                        theme === 'dark' ? '-rotate-90 scale-0' : ''
-                    }`} />
-                    <MoonIcon className={`absolute h-[1.4rem] w-[1.4rem] rotate-90 scale-0 transition-all ${
-                        theme === 'dark' ? 'rotate-0 scale-100' : ''
-                    }`} />
+                    {theme === 'dark' ? (
+                        <MoonIcon className="h-[1.4rem] w-[1.4rem] transition-all duration-300" />
+                    ) : (
+                        <SunIcon className="h-[1.4rem] w-[1.4rem] transition-all duration-300" />
+                    )}
                     <span className="sr-only">Toggle theme</span>
                 </Button>
             </DropdownMenuTrigger>

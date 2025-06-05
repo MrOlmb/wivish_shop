@@ -1,8 +1,19 @@
 import type { Metadata } from "next";
-import {interFont, barlowFont } from "./fonts"
+import { interFont, barlowFont } from "./fonts"
+
+//Clerk authentication api's
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 //global styles imports
 import "./globals.css";
+import { ThemeProvider } from "next-themes";
 
 
 // Metadata
@@ -17,10 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${interFont.variable} ${barlowFont.variable}`}>
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${interFont.variable} ${barlowFont.variable}`}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
