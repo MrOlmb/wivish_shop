@@ -1,7 +1,22 @@
+import Header from "@/components/dashboard/Header/header";
+import Sidebar from "@/components/dashboard/Sidebar/sidebar";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
-export default function AdminDashboardLayout({ children }: { children: ReactNode; }) {
+export default async function AdminDashboardLayout({ children }: { children: ReactNode; }) {
+    //block non-admins from accessing the page
+    const user = await currentUser();
+    if(!user || user.privateMetadata.role !== "ADMIN") redirect("/");
     return (
-        <div>{children}</div>
+        <div className="w-full h-full">
+            {/*Sidebar*/}
+            <Sidebar/>
+            <div className="w-full ml-[300px]">
+                {/*Header*/}
+                <Header/>
+                <div className="w-full mt-[75px] p-4">{children}</div>
+            </div>
+        </div>
     );
 }
