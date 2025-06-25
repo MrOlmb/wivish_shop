@@ -15,8 +15,8 @@ import { CategoryFormSchema } from "@/lib/schemas";
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@radix-ui/react-checkbox";
+import { Input } from "@/components/ui/input"; 
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
 
@@ -74,7 +74,7 @@ const CategoryDetails:FC<CategoryDetailsProps> = ({data}) => {
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            <FormField
+            {/* <FormField
               control={form.control}
               name="image"
               render={({ field }) => (
@@ -97,7 +97,7 @@ const CategoryDetails:FC<CategoryDetailsProps> = ({data}) => {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               disabled={isLoading}
               control={form.control}
