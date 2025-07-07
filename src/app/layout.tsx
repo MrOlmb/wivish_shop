@@ -2,14 +2,10 @@ import type { Metadata } from "next";
 import { interFont, barlowFont } from "./fonts"
 
 //Clerk authentication api's
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
+import {ClerkProvider} from '@clerk/nextjs'
+//Toast provider
+import {Toaster} from "@/components/ui/toaster";
+import {Toaster as SonnerToaster} from "@/components/ui/sonner"
 
 //global styles imports
 import "./globals.css";
@@ -20,6 +16,9 @@ import { ThemeProvider } from "next-themes";
 export const metadata: Metadata = {
   title: "Wivish Shop",
   description: "Your one and only shop to source the best products from China.",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +32,8 @@ export default function RootLayout({
         <body className={`${interFont.variable} ${barlowFont.variable}`}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}
+            <Toaster/>
+            <SonnerToaster position="bottom-left"/>
           </ThemeProvider>
         </body>
       </html>
