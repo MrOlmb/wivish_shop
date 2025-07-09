@@ -30,10 +30,10 @@ import { useRouter } from "next/navigation";
 
 interface CategoryDetailsProps {
   data?: Category;
-  cloudinary_key: string;
 }
 
-const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => {
+const CategoryDetails: FC<CategoryDetailsProps> = ({ data }) => {
+  // Initializing necessary hooks
   const { toast } = useToast();
   const router = useRouter();
 
@@ -77,7 +77,7 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
       const response = await upsertCategory(categoryData as Category);
 
       toast({
-        title: data?.id ? "Category updated successfully" : "Category created successfully",
+        title: data?.id ? "Catégorie mise à jour" : "Catégorie créee avec succès",
       });
 
       if (data?.id) {
@@ -90,7 +90,7 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: error.message || "Une erreur est survenu",
       });
     }
   };
@@ -99,11 +99,11 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
     <AlertDialog>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Category Information</CardTitle>
+          <CardTitle>Information De la Catégorie</CardTitle>
           <CardDescription>
             {data?.id
-              ? `Update ${data?.name} category information.`
-              : "Let's create a category. You can edit category later from the categories table or the category page."}
+              ? `Modifier ${data?.name} informations de catégorie.`
+              : "Créez une catégorie. Vous pouvez modifier les informations plus tard dans la table des catégories ou dans la page de création des catégories."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -117,7 +117,6 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
                     <FormControl>
                       <ImageUpload
                         type="profile"
-                        cloudinary_key={cloudinary_key}
                         value={field.value.map((image) => image.url)}
                         disabled={isLoading}
                         onChange={(url) => field.onChange([{ url }])}
@@ -134,9 +133,9 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category name</FormLabel>
+                    <FormLabel>Nom de la catégorie</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter category name" {...field} disabled={isLoading} />
+                      <Input placeholder="Entrer le nom de la categorie" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,7 +147,7 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
                 name="url"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category URL</FormLabel>
+                    <FormLabel>URL de la categorie</FormLabel>
                     <FormControl>
                       <Input placeholder="category-url" {...field} disabled={isLoading} />
                     </FormControl>
@@ -171,7 +170,7 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
                     <div className="space-y-1 leading-none">
                       <FormLabel>Featured</FormLabel>
                       <FormDescription>
-                        This category will appear on the home page
+                        Cette categorie apparaitra sur la page d'accueil.
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -179,7 +178,7 @@ const CategoryDetails: FC<CategoryDetailsProps> = ({ data, cloudinary_key }) => 
               />
 
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Loading..." : data?.id ? "Update Category" : "Create Category"}
+                {isLoading ? "Loading..." : data?.id ? "Modifier la categorie" : "Creer la categorie"}
               </Button>
             </form>
           </Form>

@@ -18,7 +18,6 @@ interface ImageUploadProps {
   type: "standard" | "profile" | "cover";
   dontShowPreview?: boolean;
   error?: boolean;
-  cloudinary_key:string;
 }
 
 const ImageUpload: FC<ImageUploadProps> = ({
@@ -29,7 +28,6 @@ const ImageUpload: FC<ImageUploadProps> = ({
   type,
   dontShowPreview,
   error,
-  cloudinary_key,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false); // Add state for bounce
@@ -76,7 +74,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
             className="w-52 h-52 rounded-full object-cover absolute top-0 left-0 bottom-0 right-0"
           />
         )}
-        <CldUploadWidget onSuccess={onUpload} uploadPreset={cloudinary_key}>
+        <CldUploadWidget onSuccess={onUpload} uploadPreset="preset1">
           {({ open }) => {
             const onClick = () => {
               open();

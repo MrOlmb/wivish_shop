@@ -1,41 +1,33 @@
+// Data Table
+import CategoryDetails from "@/components/dashboard/forms/category-details";
+import DataTable from "@/components/ui/data-table";
+// Queries
+import { getAllCategories } from "@/queries/category";
+import { Plus } from "lucide-react";
+// React import
 import React from "react";
+import { columns } from "./new/columns";
 
-export default function AdminCategoriesPage() {
+export default async function AdminCategoriesPage() {
+  // Fetching stores data from the database
+  const categories = await getAllCategories();
+
+  // Checking if no categories are found
+  if (!categories) return null; // If no categories are found return null;
+  
   return (
-    <div>Admin Categories page</div>
+    <DataTable
+      actionButtonText={
+        <>
+          <Plus size={15} />
+          Creer une categorie
+        </>
+      }
+      modalChildren={<CategoryDetails />}
+      filterValue="name"
+      data={categories}
+      searchPlaceholder="Rechercher par nom..."
+      columns={columns}
+    />
   );
 }
-
-// // Queries
-// import { getAllCategories } from "@/queries/category";
-
-// // Data table
-// import DataTable from "@/components/ui/data-table";
-// import { Plus } from "lucide-react";
-// import CategoryDetails from "@/components/dashboard/forms/category-details";
-// import { columns } from "./columns";
-
-// export default async function AdminCategoriesPage() {
-//   // Fetching stores data from the database
-//   const categories = await getAllCategories();
-
-//   // Checking if no categories are found
-//   if (!categories) return null; // If no categories found, return null
-
-//   return (
-//     <DataTable
-//       actionButtonText={
-//         <>
-//           <Plus size={15} />
-//           Create category
-//         </>
-//       }
-//       modalChildren={<CategoryDetails />}
-//       newTabLink="/dashboard/admin/categories/new"
-//       filterValue="name"
-//       data={categories}
-//       searchPlaceholder="Search category name..."
-//       columns={columns}
-//     />
-//   );
-// }

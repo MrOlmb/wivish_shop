@@ -1,7 +1,7 @@
 "use server";
 
 // Clerk
-import { currentUser } from "@clerk/nextjs/server";
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 
 // Prisma model
 import { Category } from "@prisma/client";
@@ -27,7 +27,7 @@ export const upsertCategory = async (category: Category) => {
     }
 
     if (!category) {
-      throw new Error("Please provide category data.");
+      throw new Error("Entrez des donnees de categorie s'il vous plait.");
     }
 
     // Destructure the received data
@@ -35,11 +35,11 @@ export const upsertCategory = async (category: Category) => {
 
     // Validate required fields
     if (!name || name.trim() === '') {
-      throw new Error("Category name is required.");
+      throw new Error("Le nom de Categorie est obligatoire.");
     }
     
     if (!url || url.trim() === '') {
-      throw new Error("Category URL is required.");
+      throw new Error("L'URL de Categorie est obligatoire.");
     }
 
     // Check for existing category with same name or URL
@@ -82,10 +82,82 @@ export const upsertCategory = async (category: Category) => {
       },
     });
 
-    console.log("Category upserted successfully:", categoryDetails);
+    console.log("Categorie modifié avec succes:", categoryDetails);
     return categoryDetails;
   } catch (error) {
-    console.error("Error in upsertCategory:", error);
+    console.error("Erreur durant la modification:", error);
     throw error;
   }
 };
+
+
+
+// Function: getAllCategories
+// Permission level: Public
+// Description: Retrieves all categories from the database.
+export const getAllCategories = async() => {
+  // Retrieve all categories from the database
+  const categories = await db.category.findMany({
+    orderBy:{
+      updatedAt:"desc",
+    },
+  })
+  // Returns: Array of categories sorted by updatedAt date in descending order.
+  return categories;
+}
+
+
+// Function: getCategory
+// Permission level: Public
+// Description: Retrieves a specific category from the database.
+// Parameters:
+//   - categoryID: The id of the category to be retrieved.
+// Returns: Details of the requested category.
+
+export const getCategory = async(categoryId:string)=>{
+  
+  // Ensure categoryId is provided
+  if(!categoryId) throw new Error("Entrer un ID de categorie s'il vous plait");
+
+  // Retrieve category
+  const category= await db.category.findUnique({
+    where:{
+      id:categoryId,
+    }
+  });
+  
+  return category;
+}
+  
+
+// Function: deleteCategory
+// Permission level: Admin
+// Description: Deletes a specific category from the database.
+// Parameters:
+//   - categoryID: The id of the category to be deleted.
+// Returns: A respomse indicating success or failure to delete selected category.
+
+export const deleteCategory = async(categoryId:string)=>{
+  // Make sure a categoryId is given
+  if(!categoryId) throw new Error("Entrer un ID de categorie s'il vous plait");
+
+  // Get current user
+  const user = await currentUser();
+
+  // Check if user is authenticated
+  if(!user) throw new Error('Utilisateur non authentifie') ;
+
+  // Verify admin permission
+  if(user.privateMetadata.role !== "ADMIN")
+    throw new Error(
+  "Access Non Autorise: Privileges d'Administrateur requis.")
+
+  // Retrieve category
+  const response= await db.category.delete({
+    where:{
+      id:categoryId,
+    }
+  });
+  
+  return response;
+}

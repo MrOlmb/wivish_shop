@@ -10,6 +10,7 @@ import {Toaster as SonnerToaster} from "@/components/ui/sonner"
 //global styles imports
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
+import ModalProvider from "@/providers/modal-provider";
 
 
 // Metadata
@@ -31,7 +32,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body className={`${interFont.variable} ${barlowFont.variable}`}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            {children}
+            <ModalProvider>{children}</ModalProvider>
             <Toaster/>
             <SonnerToaster position="bottom-left"/>
           </ThemeProvider>
