@@ -34,37 +34,41 @@ export const CategoryFormSchema = z.object({
   featured: z.boolean().default(false),
 });
 
-// // SubCategory schema
-// export const SubCategoryFormSchema = z.object({
-//   name: z
-//     .string({
-//       required_error: "SubCategory name is required",
-//       invalid_type_error: "SubCategory name must be a string",
-//     })
-//     .min(2, { message: "SubCategory name must be at least 2 characters long." })
-//     .max(50, { message: "SubCategory name cannot exceed 50 characters." })
-//     .regex(/^[a-zA-Z0-9\s'&-]+$/, {
-//       message:
-//         "Only letters, numbers, and spaces are allowed in the subCategory name.",
-//     }),
-//   image: z
-//     .object({ url: z.string() })
-//     .array()
-//     .length(1, "Choose only one subCategory image"),
-//   url: z
-//     .string({
-//       required_error: "SubCategory url is required",
-//       invalid_type_error: "SubCategory url must be a string",
-//     })
-//     .min(2, { message: "SubCategory url must be at least 2 characters long." })
-//     .max(50, { message: "SubCategory url cannot exceed 50 characters." })
-//     .regex(/^(?!.*(?:[-_ ]){2,})[a-zA-Z0-9_-]+$/, {
-//       message:
-//         "Only letters, numbers, hyphen, and underscore are allowed in the subCategory url, and consecutive occurrences of hyphens, underscores, or spaces are not permitted.",
-//     }),
-//   categoryId: z.string().uuid(),
-//   featured: z.boolean().default(false),
-// });
+// Refactored SubCategory schema
+export const SubCategoryFormSchema = z.object({
+  name: z
+    .string({
+      required_error: "Le nom de sous-categorie est requis.",
+      invalid_type_error: "Le nom de sous-categorie doit etre une chaine de charactere.",
+    })
+    .min(2, { message: "Le nom doit contenir au moins 02 characteres." })
+    .max(50, { message: "Le nom ne peut depasser 50 characteres." })
+    .regex(/^[a-zA-Z0-9\s'&-]+$/, {
+      message:
+        "Seuls les lettres, les chiffres, et les espaces sont permis dans le nom.",
+    }),
+  image: z
+    .object({
+      url: z.string(),
+    })
+    .array()
+    .length(1, "Choisissez une image."),
+  url: z
+    .string({
+      required_error: "L'url de la sous-categorie est requis",
+      invalid_type_error: "L'url de la sous-categorie doit etre une chaine de characteres.",
+    })
+    .min(2, { message: "L'url doit contenir au moins 02 characteres." })
+    .max(50, { message: "L'url ne peut exceder 50 characteres." })
+    .regex(/^(?!.*(?:[-_ ]){2,})[a-zA-Z0-9_-]+$/, {
+      message:
+        "Seuls les lettres, les chiffres, les tirets, et les traits de huit sont acceptes dans l'url de sous-categorie; Les tirets, traits de huits, et espacas consecutifs ne sont pas autorises.",
+    }),
+  categoryId:z.string().uuid(),
+  featured: z.boolean().default(false),
+});
+
+
 
 // // Store schema
 // export const StoreFormSchema = z.object({

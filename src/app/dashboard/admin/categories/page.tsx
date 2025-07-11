@@ -6,7 +6,7 @@ import { getAllCategories } from "@/queries/category";
 import { Plus } from "lucide-react";
 // React import
 import React from "react";
-import { columns } from "./new/columns";
+import { columns } from "./columns";
 
 export default async function AdminCategoriesPage() {
   // Fetching stores data from the database
@@ -24,6 +24,7 @@ export default async function AdminCategoriesPage() {
         </>
       }
       modalChildren={<CategoryDetails />}
+      newTabLink="/dashboard/admin/categories/new"
       filterValue="name"
       data={categories}
       searchPlaceholder="Rechercher par nom..."
