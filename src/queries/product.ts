@@ -30,6 +30,217 @@ import { getCookie } from "cookies-next";
 import { cookies } from "next/headers";
 import { setMaxListeners } from "events";
 
+// Function: createProduct
+// Description: Creates a new product with variant, sizes, colors, and specs
+// Access Level: Seller Only
+// Parameters: productData with all product information
+export const createProduct = async (productData: any) => {
+  try {
+    // Get current user
+    const user = await currentUser();
+
+    // Ensure user is authenticated
+    if (!user) throw new Error("Unauthenticated.");
+
+    // Verify seller permission
+    if (user.privateMetadata.role !== "SELLER")
+      throw new Error("Unauthorized Access: Seller Privileges Required for Entry.");
+
+    // Validate store ownership
+    const store = await db.store.findUnique({
+      where: {
+        id: productData.storeId,
+        userId: user.id,
+      },
+    });
+
+    if (!store) throw new Error("Store not found or you don't have permission to add products to this store.");
+
+    // Generate unique slugs for product and variant
+    const productSlug = await generateUniqueSlug(
+      slugify(productData.name, {
+        replacement: "-",
+        lower: true,
+        trim: true,
+      }),
+      "product"
+    );
+
+    const variantSlug = await generateUniqueSlug(
+      slugify(productData.variantName, {
+        replacement: "-",
+        lower: true,
+        trim: true,
+      }),
+      "variant"
+    );
+
+    // Create product with variant, sizes, colors, and specs in a transaction
+    const result = await db.$transaction(async (tx) => {
+      // 1. Create the main product
+      const product = await tx.product.create({
+        data: {
+          name: productData.name,
+          description: productData.description,
+          slug: productSlug,
+          brand: productData.brand,
+          shippingFeeMethod: productData.shippingFeeMethod,
+          freeShippingForAllCountries: productData.freeShippingForAllCountries,
+          storeId: productData.storeId,
+          categoryId: productData.categoryId,
+          subCategoryId: productData.subCategoryId,
+        },
+      });
+
+      // 2. Create product specs
+      if (productData.product_specs && productData.product_specs.length > 0) {
+        await tx.spec.createMany({
+          data: productData.product_specs.map((spec: any) => ({
+            name: spec.name,
+            value: spec.value,
+            productId: product.id,
+          })),
+        });
+      }
+
+      // 3. Create product variant
+      const variant = await tx.productVariant.create({
+        data: {
+          variantName: productData.variantName,
+          variantDescription: productData.variantDescription || "",
+          variantImage: productData.variantImage[0]?.url || "",
+          slug: variantSlug,
+          sku: productData.sku,
+          weight: productData.weight,
+          productId: product.id,
+        },
+      });
+
+      // 4. Create variant images
+      if (productData.images && productData.images.length > 0) {
+        await tx.productVariantImage.createMany({
+          data: productData.images.map((image: any) => ({
+            url: image.url,
+            productVariantId: variant.id,
+          })),
+        });
+      }
+
+      // 5. Create variant specs
+      if (productData.variant_specs && productData.variant_specs.length > 0) {
+        await tx.spec.createMany({
+          data: productData.variant_specs.map((spec: any) => ({
+            name: spec.name,
+            value: spec.value,
+            productVariantId: variant.id,
+          })),
+        });
+      }
+
+      // 6. Create colors
+      if (productData.colors && productData.colors.length > 0) {
+        await tx.color.createMany({
+          data: productData.colors.map((color: any) => ({
+            color: color.color,
+            productVariantId: variant.id,
+          })),
+        });
+      }
+
+      // 7. Create sizes
+      if (productData.sizes && productData.sizes.length > 0) {
+        await tx.size.createMany({
+          data: productData.sizes.map((size: any) => ({
+            size: size.size,
+            quantity: size.quantity,
+            price: size.price,
+            discount: size.discount,
+            productVariantId: variant.id,
+          })),
+        });
+      }
+
+      return { product, variant };
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Create product error:", error);
+    throw error;
+  }
+};
+
+// Function: getStoreProducts
+// Description: Gets all products for a specific store
+// Access Level: Seller Only (for their own store)
+export const getStoreProducts = async (storeId: string) => {
+  try {
+    // Get current user
+    const user = await currentUser();
+
+    // Ensure user is authenticated
+    if (!user) throw new Error("Unauthenticated.");
+
+    // Verify seller permission
+    if (user.privateMetadata.role !== "SELLER")
+      throw new Error("Unauthorized Access: Seller Privileges Required for Entry.");
+
+    // Validate store ownership
+    const store = await db.store.findUnique({
+      where: {
+        id: storeId,
+        userId: user.id,
+      },
+    });
+
+    if (!store) throw new Error("Store not found or you don't have permission to access this store.");
+
+    // Get products with their variants, sizes, and other related data
+    const products = await db.product.findMany({
+      where: {
+        storeId: storeId,
+      },
+      include: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+        subCategory: {
+          select: {
+            name: true,
+          },
+        },
+        variants: {
+          include: {
+            sizes: true,
+            colors: true,
+            images: true,
+            _count: {
+              select: {
+                sizes: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            variants: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return products;
+  } catch (error) {
+    console.error("Get store products error:", error);
+    throw error;
+  }
+};
+
 // Function: upsertProduct
 // Description: Upserts a product and its variant into the database, ensuring proper association with the store.
 // Access Level: Seller Only

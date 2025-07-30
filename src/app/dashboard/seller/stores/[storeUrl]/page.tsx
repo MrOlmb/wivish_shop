@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import Link from "next/link";
 
 interface SellerStorePageProps {
   params: {
@@ -78,22 +79,22 @@ export default async function SellerStorePage({ params }: SellerStorePageProps) 
       <div className="bg-white p-6 rounded-lg border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+          <Link href={`/dashboard/seller/stores/${params.storeUrl}/products/new`} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
             <h3 className="font-medium text-gray-900">Ajouter un produit</h3>
             <p className="text-sm text-gray-500">Créer un nouveau produit</p>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+          </Link>
+          <Link href={`/dashboard/seller/stores/${params.storeUrl}/products`} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
+            <h3 className="font-medium text-gray-900">Voir les produits</h3>
+            <p className="text-sm text-gray-500">Gérer vos produits</p>
+          </Link>
+          <Link href={`/dashboard/seller/stores/${params.storeUrl}/orders`} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
             <h3 className="font-medium text-gray-900">Voir les commandes</h3>
             <p className="text-sm text-gray-500">Gérer vos commandes</p>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+          </Link>
+          <Link href={`/dashboard/seller/stores/${params.storeUrl}/settings`} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
             <h3 className="font-medium text-gray-900">Paramètres</h3>
             <p className="text-sm text-gray-500">Configurer votre magasin</p>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-            <h3 className="font-medium text-gray-900">Livraison</h3>
-            <p className="text-sm text-gray-500">Configurer la livraison</p>
-          </button>
+          </Link>
         </div>
       </div>
 
