@@ -35,6 +35,7 @@ model Category {
   featured Boolean @default(false)
 
   subCategories SubCategory[] @relation("CategoryToSubcategory")
+  products      Product[]     @relation("CategoryToProduct")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -48,7 +49,8 @@ model SubCategory {
   featured Boolean @default(false)
 
   categoryId String
-  category   Category @relation("CategoryToSubcategory", fields: [categoryId], references: [id])
+  category   Category  @relation("CategoryToSubcategory", fields: [categoryId], references: [id])
+  products   Product[] @relation("SubCategoryToProduct")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -85,7 +87,117 @@ model Store {
   updatedAt DateTime @updatedAt
 
   userId String
-  user   User   @relation("UserStores", fields: [userId], references: [id])
+  user     User      @relation("UserStores", fields: [userId], references: [id])
+  products Product[] @relation("StoreToProduct")
 
   @@index([userId])
+}
+
+enum ShippingFeeMethod {
+  ITEM
+  KG
+  FIXED
+}
+
+model Product {
+  id                String            @id @default(uuid())
+  name              String
+  description       String            @db.Text
+  slug              String            @unique
+  brand             String
+  rating            Float             @default(0)
+  sales             Int               @default(0)
+  numReviews        Int               @default(0)
+  shippingFeeMethod ShippingFeeMethod @default(ITEM)
+  views             Int               @default(0)
+  freeShippingForAllCountries Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  storeId           String
+  store             Store      @relation("StoreToProduct", fields: [storeId], references: [id])
+  categoryId        String
+  category          Category   @relation("CategoryToProduct", fields: [categoryId], references: [id])
+  subCategoryId     String
+  subCategory       SubCategory @relation("SubCategoryToProduct", fields: [subCategoryId], references: [id])
+
+  variants          ProductVariant[] @relation("ProductToProductVariant")
+  specs             Spec[]           @relation("ProductSpec")
+
+  @@index([storeId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+}
+
+model ProductVariant {
+  id                 String  @id @default(uuid())
+  variantName        String
+  variantDescription String? @db.Text
+  variantImage       String
+  slug               String  @unique
+  sku                String  @unique
+  sales              Int     @default(0)
+  weight             Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId         String
+  product           Product @relation("ProductToProductVariant", fields: [productId], references: [id])
+
+  sizes             Size[]  @relation("ProductVariantSizes")
+  colors            Color[] @relation("ProductVariantColors")
+  specs             Spec[]  @relation("ProductVariantSpec")
+  images            ProductVariantImage[] @relation("ProductVariantImages")
+
+  @@index([productId])
+}
+
+model Size {
+  id                String  @id @default(uuid())
+  size              String
+  quantity          Int
+  price             Float
+  discount          Float   @default(0)
+
+  productVariantId  String
+  productVariant    ProductVariant @relation("ProductVariantSizes", fields: [productVariantId], references: [id])
+
+  @@index([productVariantId])
+}
+
+model Color {
+  id                String  @id @default(uuid())
+  color             String
+
+  productVariantId  String
+  productVariant    ProductVariant @relation("ProductVariantColors", fields: [productVariantId], references: [id])
+
+  @@index([productVariantId])
+}
+
+model ProductVariantImage {
+  id                String  @id @default(uuid())
+  url               String
+
+  productVariantId  String
+  productVariant    ProductVariant @relation("ProductVariantImages", fields: [productVariantId], references: [id])
+
+  @@index([productVariantId])
+}
+
+model Spec {
+  id                String  @id @default(uuid())
+  name              String
+  value             String
+
+  productId         String?
+  product           Product? @relation("ProductSpec", fields: [productId], references: [id])
+  
+  productVariantId  String?
+  productVariant    ProductVariant? @relation("ProductVariantSpec", fields: [productVariantId], references: [id])
+
+  @@index([productId])
+  @@index([productVariantId])
 }
