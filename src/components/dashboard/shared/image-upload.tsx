@@ -124,7 +124,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
             className="w-full h-full rounded-lg object-cover"
           />
         )}
-        <CldUploadWidget onSuccess={onUpload} uploadPreset="cloudinary_key">
+        <CldUploadWidget onSuccess={onUpload} uploadPreset="preset1">
           {({ open }) => {
             const onClick = () => {
               open();
@@ -188,7 +188,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
               </div>
             ))}
         </div>
-        <CldUploadWidget onSuccess={onUpload} uploadPreset="cloudinary_key">
+        <CldUploadWidget onSuccess={onUpload} uploadPreset="preset1">
           {({ open }) => {
             const onClick = () => {
               open();

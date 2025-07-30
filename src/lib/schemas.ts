@@ -70,59 +70,59 @@ export const SubCategoryFormSchema = z.object({
 
 
 
-// // Store schema
-// export const StoreFormSchema = z.object({
-//   name: z
-//     .string({
-//       required_error: "Store name is required",
-//       invalid_type_error: "Store name must be a string",
-//     })
-//     .min(2, { message: "Store name must be at least 2 characters long." })
-//     .max(50, { message: "Store name cannot exceed 50 characters." })
-//     .regex(/^(?!.*(?:[-_& ]){2,})[a-zA-Z0-9_ &-]+$/, {
-//       message:
-//         "Only letters, numbers, space, hyphen, and underscore are allowed in the store name, and consecutive occurrences of hyphens, underscores, or spaces are not permitted.",
-//     }),
-//   description: z
-//     .string({
-//       required_error: "Store description is required",
-//       invalid_type_error: "Store description must be a string",
-//     })
-//     .min(30, {
-//       message: "Store description must be at least 30 characters long.",
-//     })
-//     .max(500, { message: "Store description cannot exceed 500 characters." }),
-//   email: z
-//     .string({
-//       required_error: "Store email is required",
-//       invalid_type_error: "Store email must be a string",
-//     })
-//     .email({ message: "Invalid email format." }),
-//   phone: z
-//     .string({
-//       required_error: "Store phone number is required",
-//       invalid_type_error: "Store phone number must be a string",
-//     })
-//     .regex(/^\+?\d+$/, { message: "Invalid phone number format." }),
-//   logo: z.object({ url: z.string() }).array().length(1, "Choose a logo image."),
-//   cover: z
-//     .object({ url: z.string() })
-//     .array()
-//     .length(1, "Choose a cover image."),
-//   url: z
-//     .string({
-//       required_error: "Store url is required",
-//       invalid_type_error: "Store url must be a string",
-//     })
-//     .min(2, { message: "Store url must be at least 2 characters long." })
-//     .max(50, { message: "Store url cannot exceed 50 characters." })
-//     .regex(/^(?!.*(?:[-_ ]){2,})[a-zA-Z0-9_-]+$/, {
-//       message:
-//         "Only letters, numbers, hyphen, and underscore are allowed in the store url, and consecutive occurrences of hyphens, underscores, or spaces are not permitted.",
-//     }),
-//   featured: z.boolean().default(false).optional(),
-//   status: z.string().default("PENDING").optional(),
-// });
+// Store schema avec messages en français
+export const StoreFormSchema = z.object({
+  name: z
+    .string({
+      required_error: "Le nom du magasin est requis",
+      invalid_type_error: "Le nom du magasin doit être une chaîne de caractères",
+    })
+    .min(2, { message: "Le nom du magasin doit contenir au moins 2 caractères." })
+    .max(50, { message: "Le nom du magasin ne peut pas dépasser 50 caractères." })
+    .regex(/^(?!.*(?:[-_& ]){2,})[a-zA-Z0-9_ &-]+$/, {
+      message:
+        "Seuls les lettres, chiffres, espaces, tirets et traits de soulignement sont autorisés dans le nom du magasin, sans caractères consécutifs.",
+    }),
+  description: z
+    .string({
+      required_error: "La description du magasin est requise",
+      invalid_type_error: "La description du magasin doit être une chaîne de caractères",
+    })
+    .min(30, {
+      message: "La description du magasin doit contenir au moins 30 caractères.",
+    })
+    .max(500, { message: "La description du magasin ne peut pas dépasser 500 caractères." }),
+  email: z
+    .string({
+      required_error: "L'email du magasin est requis",
+      invalid_type_error: "L'email du magasin doit être une chaîne de caractères",
+    })
+    .email({ message: "Format d'email invalide." }),
+  phone: z
+    .string({
+      required_error: "Le numéro de téléphone du magasin est requis",
+      invalid_type_error: "Le numéro de téléphone du magasin doit être une chaîne de caractères",
+    })
+    .regex(/^\+?\d+$/, { message: "Format de numéro de téléphone invalide." }),
+  logo: z.object({ url: z.string() }).array().length(1, "Choisissez une image de logo."),
+  cover: z
+    .object({ url: z.string() })
+    .array()
+    .length(1, "Choisissez une image de couverture."),
+  url: z
+    .string({
+      required_error: "L'URL du magasin est requise",
+      invalid_type_error: "L'URL du magasin doit être une chaîne de caractères",
+    })
+    .min(2, { message: "L'URL du magasin doit contenir au moins 2 caractères." })
+    .max(50, { message: "L'URL du magasin ne peut pas dépasser 50 caractères." })
+    .regex(/^(?!.*(?:[-_ ]){2,})[a-zA-Z0-9_-]+$/, {
+      message:
+        "Seuls les lettres, chiffres, tirets et traits de soulignement sont autorisés dans l'URL du magasin, sans caractères consécutifs.",
+    }),
+  featured: z.boolean().default(false).optional(),
+  status: z.string().default("PENDING").optional(),
+});
 
 // // Product schema
 // export const ProductFormSchema = z.object({

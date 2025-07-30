@@ -1,12 +1,25 @@
-import Logo from "@/components/shared/logo";
-import { currentUser } from "@clerk/nextjs/server";
+// Import React
 import { FC } from "react";
+
+// Custom UI components
+import Logo from "@/components/shared/logo";
 import UserInfo from "./user-info";
 import SidebarNavAdmin from "./nav-admin";
-import { adminDashboardSidebarOptions } from "@/constants/data";
+import SidebarNavSeller from "./nav-seller";
 
+// Menu Links
+import { adminDashboardSidebarOptions, SellerDashboardSidebarOptions } from "@/constants/data";
+
+// Clerk
+import { currentUser } from "@clerk/nextjs/server";
+
+// Prisma models
+import { Store } from "@prisma/client";
+
+// Interface defintion
 interface SidebarProps{
     isAdmin?: boolean;
+    stores?:Store[];
 }
 
 const Sidebar: FC<SidebarProps> = async ({isAdmin}) =>{
@@ -16,7 +29,7 @@ const Sidebar: FC<SidebarProps> = async ({isAdmin}) =>{
         <span className="mt-3"/>
         {user && <UserInfo user={user}/>}
         {
-            isAdmin && <SidebarNavAdmin menuLinks={adminDashboardSidebarOptions}/>
+            isAdmin ? <SidebarNavAdmin menuLinks={adminDashboardSidebarOptions}/> : <SidebarNavSeller menuLinks={SellerDashboardSidebarOptions}/>
         }
     </div>
 };
