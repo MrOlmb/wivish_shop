@@ -1,15 +1,29 @@
 "use client";
 
 // React, Next.js
-import { useState } from "react";
+import { FC, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// React Hook Form
+// Prisma model
+import { Store } from "@prisma/client";
+
+// Form handling utilities
+import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+
+// Schema
+import { StoreFormSchema } from "@/lib/schemas";
 
 // UI Components
+import { AlertDialog } from "@/components/ui/alert-dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -17,291 +31,286 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-
-// Custom Components
-import ImageUpload from "@/components/dashboard/shared/image-upload";
-
-// Schemas
-import { StoreFormSchema } from "@/lib/schemas";
+import ImageUpload from "../shared/image-upload";
+import { useToast } from "@/components/ui/use-toast";
 
 // Queries
 import { upsertStore } from "@/queries/store";
 
-// Toast
-import { toast } from "sonner"; 
-
-// Prisma types
-import { Store } from "@prisma/client";
+// Utils
+import { v4 } from "uuid";
 
 interface StoreDetailsProps {
-  initialData?: Store | null;
+  data?: Store;
 }
 
-type StoreFormValues = z.infer<typeof StoreFormSchema>;
+const StoreDetails: FC<StoreDetailsProps> = ({ data }) => {
+  // Initializing necessary hooks
+  const { toast } = useToast(); // Hook for displaying toast messages
+  const router = useRouter(); // Hook for routing
 
-export default function StoreDetails({ initialData }: StoreDetailsProps) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const form = useForm<StoreFormValues>({
-    resolver: zodResolver(StoreFormSchema),
+  // Form hook for managing form state and validation
+  const form = useForm<z.infer<typeof StoreFormSchema>>({
+    mode: "onChange", // Form validation mode
+    resolver: zodResolver(StoreFormSchema), // Resolver for form validation
     defaultValues: {
-      name: initialData?.name || "",
-      description: initialData?.description || "",
-      email: initialData?.email || "",
-      phone: initialData?.phone || "",
-      url: initialData?.url || "",
-      logo: initialData?.logo ? [{ url: initialData.logo }] : [],
-      cover: initialData?.cover ? [{ url: initialData.cover }] : [],
-      featured: initialData?.featured || false,
+      // Setting default form values from data (if available)
+      name: data?.name,
+      description: data?.description,
+      email: data?.email,
+      phone: data?.phone,
+      logo: data?.logo ? [{ url: data?.logo }] : [],
+      cover: data?.cover ? [{ url: data?.cover }] : [],
+      url: data?.url,
+      featured: data?.featured,
+      status: data?.status.toString(),
     },
   });
 
-  const onSubmit = async (values: StoreFormValues) => {
-    try {
-      setLoading(true);
+  // Loading status based on form submission
+  const isLoading = form.formState.isSubmitting;
 
-      const storeData = {
-        id: initialData?.id || crypto.randomUUID(),
+  // Reset form values when data changes
+  useEffect(() => {
+    if (data) {
+      form.reset({
+        name: data?.name,
+        description: data?.description,
+        email: data?.email,
+        phone: data?.phone,
+        logo: [{ url: data?.logo }],
+        cover: [{ url: data?.cover }],
+        url: data?.url,
+        featured: data?.featured,
+        status: data?.status,
+      });
+    }
+  }, [data, form]);
+
+  // Submit handler for form submission
+  const handleSubmit = async (values: z.infer<typeof StoreFormSchema>) => {
+    try {
+      // Upserting category data
+      const response = await upsertStore({
+        id: data?.id ? data.id : v4(),
         name: values.name,
         description: values.description,
         email: values.email,
         phone: values.phone,
+        logo: values.logo[0].url,
+        cover: values.cover[0].url,
         url: values.url,
-        logo: values.logo[0]?.url || "",
-        cover: values.cover[0]?.url || "",
-        featured: values.featured || false,
-        status: initialData?.status || "PENDING",
-      };
+        featured: values.featured,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      const result = await upsertStore(storeData);
+      // Displaying success message
+      toast({
+        title: data?.id
+          ? "Store has been updated."
+          : `Congratulations! Store is now created.`,
+      });
 
-      if (result) {
-        toast.success(
-          initialData 
-            ? "Magasin mis à jour avec succès!" 
-            : "Magasin créé avec succès!"
-        );
-        
-        if (!initialData) {
-          router.push(`/dashboard/seller/stores/${result.url}`);
-        }
+      // Redirect or Refresh data
+      if (data?.id) {
+        router.refresh();
+      } else {
+        router.push(`/dashboard/seller/stores/`);
       }
     } catch (error: any) {
-      toast.error(error.message || "Une erreur s'est produite");
-    } finally {
-      setLoading(false);
+      // Handling form submission errors
+      toast({
+        variant: "destructive",
+        title: "Oops!",
+        description: error.toString(),
+      });
     }
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {initialData ? "Modifier le magasin" : "Créer un nouveau magasin"}
-        </h1>
-        <p className="text-gray-600 mt-2">
-          {initialData 
-            ? "Mettez à jour les informations de votre magasin" 
-            : "Remplissez les informations pour créer votre magasin"
-          }
-        </p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Logo Upload */}
-          <FormField
-            control={form.control}
-            name="logo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Logo du magasin *</FormLabel>
-                <FormControl>
-                  <ImageUpload
-                    type="profile"
-                    value={field.value ? field.value.map((image) => image.url) : []}
-                    disabled={loading}
-                    onChange={(url) => {
-                      field.onChange([{ url }]);
-                    }}
-                    onRemove={() => field.onChange([])}
-                    error={!!form.formState.errors.logo}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Cover Upload */}
-          <FormField
-            control={form.control}
-            name="cover"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image de couverture *</FormLabel>
-                <FormControl>
-                  <ImageUpload
-                    type="cover"
-                    value={field.value ? field.value.map((image) => image.url) : []}
-                    disabled={loading}
-                    onChange={(url) => {
-                      field.onChange([{ url }]);
-                    }}
-                    onRemove={() => field.onChange([])}
-                    error={!!form.formState.errors.cover}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Store Name */}
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom du magasin *</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Entrez le nom de votre magasin"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Store URL */}
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL du magasin *</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="url-de-votre-magasin"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Store Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email du magasin *</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      type="email"
-                      placeholder="contact@votre-magasin.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Store Phone */}
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Téléphone du magasin *</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="+33123456789"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Store Description */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description du magasin *</FormLabel>
-                <FormControl>
-                  <Textarea
-                    disabled={loading}
-                    placeholder="Décrivez votre magasin, vos produits et services..."
-                    className="min-h-[120px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Featured checkbox - only show for admins or when editing */}
-          {initialData && (
-            <FormField
-              control={form.control}
-              name="featured"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={loading}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Magasin en vedette</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Ce magasin apparaîtra dans la section des magasins en vedette
-                    </p>
-                  </div>
-                </FormItem>
-              )}
-            />
-          )}
-
-          <div className="flex justify-end space-x-4 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading}
-              onClick={() => router.back()}
+    <AlertDialog>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Informations de la boutique</CardTitle>
+          <CardDescription>
+            {data?.id
+              ? `Update ${data?.name} store information.`
+              : " Lets create a store. You can edit store later from the store settings page."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
             >
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Enregistrement..." : (initialData ? "Mettre à jour" : "Créer le magasin")}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+              {/* Logo - Cover */}
+              <div className="relative py-2 mb-24">
+                <FormField
+                  control={form.control}
+                  name="logo"
+                  render={({ field }) => (
+                    <FormItem className="absolute -bottom-20 -left-48 z-10 inset-x-96">
+                      <FormControl>
+                        <ImageUpload
+                          type="profile"
+                          value={field.value.map((image) => image.url)}
+                          disabled={isLoading}
+                          onChange={(url) => field.onChange([{ url }])}
+                          onRemove={(url) =>
+                            field.onChange([
+                              ...field.value.filter(
+                                (current) => current.url !== url
+                              ),
+                            ])
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cover"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <ImageUpload
+                          type="cover"
+                          value={field.value.map((image) => image.url)}
+                          disabled={isLoading}
+                          onChange={(url) => field.onChange([{ url }])}
+                          onRemove={(url) =>
+                            field.onChange([
+                              ...field.value.filter(
+                                (current) => current.url !== url
+                              ),
+                            ])
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              {/* Name */}
+              <FormField
+                disabled={isLoading}
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Nom de la boutique</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nom" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Description */}
+              <FormField
+                disabled={isLoading}
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Description de la boutique</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Description" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Email - Phone */}
+              <div className="flex flex-col gap-6 md:flex-row">
+                <FormField
+                  disabled={isLoading}
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>E-mail de la boutique</FormLabel>
+                      <FormControl>
+                        <Input placeholder="E-mail" {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  disabled={isLoading}
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Téléphone de la boutique</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Téléphone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                disabled={isLoading}
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>URL de la boutique</FormLabel>
+                    <FormControl>
+                      <Input placeholder="/url-boutique" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="featured"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        // @ts-ignore
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>En vedette</FormLabel>
+                      <FormDescription>
+                        This Store will appear on the home page.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={isLoading}>
+                {isLoading
+                  ? "loading..."
+                  : data?.id
+                  ? "Save store information"
+                  : "Create store"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </AlertDialog>
   );
-}
+};
+
+export default StoreDetails;

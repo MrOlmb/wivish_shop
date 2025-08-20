@@ -1,7 +1,6 @@
-import React from "react";
 import CategoryDetails from "@/components/dashboard/forms/category-details";
 
-export default function AdminNewCategory() {
+export default function AdminNewCategoryPage() {
   return (
     <div className="w-full">
       <CategoryDetails />

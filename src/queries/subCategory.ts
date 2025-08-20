@@ -1,177 +1,183 @@
 "use server";
 
 // Clerk
-import { clerkClient, currentUser } from "@clerk/nextjs/server";
-
-// Prisma model
-import { Category, SubCategory } from "@prisma/client";
+import { currentUser } from "@clerk/nextjs/server";
 
 // DB
 import { db } from "@/lib/db";
 
-export const upsertSubCategory = async (subCategory: SubCategory, categoryId:Category) => {
-  try {
-    console.log("Received subCategory data:", subCategory);
+// Prisma model
+import { Category, SubCategory } from "@prisma/client";
 
+// Function: upsertSubCategory
+// Description: Upserts a subCategory into the database, updating if it exists or creating a new one if not.
+// Permission Level: Admin only
+// Parameters:
+//   - SubCategory: subCategory object containing details of the subCategory to be upserted.
+// Returns: Updated or newly created subCategory details.
+export const upsertSubCategory = async (subCategory: SubCategory) => {
+  try {
     // Get current user
     const user = await currentUser();
 
     // Ensure user is authenticated
-    if (!user) {
-      throw new Error("Utilisateur non authentifié.");
-    }
+    if (!user) throw new Error("Unauthenticated.");
 
     // Verify admin permission
-    if (user.privateMetadata.role !== "ADMIN") {
-      throw new Error("Accès non autorisé : Privilèges d'administrateur requis.");
-    }
+    if (user.privateMetadata.role !== "ADMIN")
+      throw new Error(
+        "Unauthorized Access: Admin Privileges Required for Entry."
+      );
 
-    if (!subCategory) {
-      throw new Error("Entrez des donnees de sous-categorie s'il vous plait.");
-    }
+    // Ensure SubCategory data is provided
+    if (!subCategory) throw new Error("Please provide subCategory data.");
 
-    // Destructure the received data
-    const { id, name, url, image, featured, categoryId } = subCategory;
-
-    // Validate required fields
-    if (!name || name.trim() === '') {
-      throw new Error("Le nom de sous-Categorie est obligatoire.");
-    }
-    
-    if (!url || url.trim() === '') {
-      throw new Error("L'URL de sous-Categorie est obligatoire.");
-    }
-
-    // Check for existing subCategory with same name or URL
+    // Throw error if category with same name or URL already exists
     const existingSubCategory = await db.subCategory.findFirst({
       where: {
         AND: [
           {
-            OR: [{ name: name.trim() }, { url: url.trim() }],
+            OR: [{ name: subCategory.name }, { url: subCategory.url }],
           },
           {
-            NOT: { id: id },
+            NOT: {
+              id: subCategory.id,
+            },
           },
         ],
       },
     });
 
+    // Throw error if category with same name or URL already exists
     if (existingSubCategory) {
-      if (existingSubCategory.name === name.trim()) {
-        throw new Error("Une catégorie avec le même nom existe déjà.");
-      } else if (existingSubCategory.url === url.trim()) {
-        throw new Error("Une catégorie avec la même URL existe déjà.");
+      let errorMessage = "";
+      if (existingSubCategory.name === subCategory.name) {
+        errorMessage = "A SubCategory with the same name already exists";
+      } else if (existingSubCategory.url === subCategory.url) {
+        errorMessage = "A SubCategory with the same URL already exists";
       }
+      throw new Error(errorMessage);
     }
 
-    // Upsert subCategory into the database
+    // Upsert SubCategory into the database
     const subCategoryDetails = await db.subCategory.upsert({
-      where: { id },
-      update: {
-        name: name.trim(),
-        url: url.trim(),
-        image,
-        featured,
-        categoryId:categoryId
+      where: {
+        id: subCategory.id,
       },
-      create: {
-        id,
-        name: name.trim(),
-        url: url.trim(),
-        image,
-        featured,
-        categoryId:categoryId
-      },
+      update: subCategory,
+      create: subCategory,
     });
-
-    console.log("Sous-categorie modifié avec succes:", subCategoryDetails);
     return subCategoryDetails;
   } catch (error) {
-    console.error("Erreur durant la modification:", error);
+    // Log and re-throw any errors
     throw error;
   }
 };
 
-
-
 // Function: getAllSubCategories
-// Permission level: Public
-// Description: Retrieves all sous-categories from the database.
-export const getAllSubCategories = async() => {
-  // Retrieve all sous-categories from the database
+// Description: Retrieves all subCategories from the database.
+// Permission Level: Public
+// Returns: Array of categories sorted by updatedAt date in descending order.
+export const getAllSubCategories = async () => {
+  // Retrieve all subCategories from the database
   const subCategories = await db.subCategory.findMany({
-    include:{
-      category:true,
+    include: {
+      category: true,
     },
-    orderBy:{
-      updatedAt:"desc",
+    orderBy: {
+      updatedAt: "desc",
     },
-  })
-  // Returns: Array of sous-categories sorted by updatedAt date in descending order.
+  });
   return subCategories;
-}
+};
 
-
-// Function: GetCategory
-// Permission level: Public
-// Description: Retrieves a specific subCategory from the database.
+// Function: getSubCategory
+// Description: Retrieves a specific SubCategory from the database.
+// Access Level: Public
 // Parameters:
-//   - subCategoryID: The id of the subCategory to be retrieved.
-// Returns: Details of the requested subCategory.
-
-export const getSubCategory = async(subCategoryId:string)=>{
-
-  // Get the current user info
-  const user = await currentUser();
-  
-  // Make sure the user is connected to the platform
-  if(!user) throw new Error('Utilisateur non authentifie') ;
-  
-  // Ensure subCategoryId is provided
-  if(!subCategoryId) throw new Error("Entrer un ID de sous-categorie s'il vous plait");
+//   - SubCategoryId: The ID of the SubCategory to be retrieved.
+// Returns: Details of the requested SubCategory.
+export const getSubCategory = async (subCategoryId: string) => {
+  // Ensure subCategory ID is provided
+  if (!subCategoryId) throw new Error("Please provide suCategory ID.");
 
   // Retrieve subCategory
-  const subCategory= await db.subCategory.findUnique({
-    include:{
-      category:true,
+  const subCategory = await db.subCategory.findUnique({
+    where: {
+      id: subCategoryId,
     },
-    where:{
-      id:subCategoryId,
-    }
   });
-  
   return subCategory;
-}
-  
+};
 
 // Function: deleteSubCategory
-// Permission level: Admin
-// Description: Deletes a specific subCategory from the database.
+// Description: Deletes a SubCategory from the database.
+// Permission Level: Admin only
 // Parameters:
-//   - subCategoryID: The id of the subCategory to be deleted.
-// Returns: A respomse indicating success or failure to delete selected subCategory.
-
-export const deleteSubCategory = async(subCategoryId:string)=>{
-  // Make sure a subCategoryId is given
-  if(!subCategoryId) throw new Error("Entrer un ID de sous-categorie s'il vous plait");
-
+//   - SubCategoryId: The ID of the SubCategory to be deleted.
+// Returns: Response indicating success or failure of the deletion operation.
+export const deleteSubCategory = async (subCategoryId: string) => {
   // Get current user
   const user = await currentUser();
 
   // Check if user is authenticated
-  if(!user) throw new Error('Utilisateur non authentifie') ;
+  if (!user) throw new Error("Unauthenticated.");
 
   // Verify admin permission
-  if(user.privateMetadata.role !== "ADMIN")
+  if (user.privateMetadata.role !== "ADMIN")
     throw new Error(
-  "Access Non Autorise: Privileges d'Administrateur requis.")
+      "Unauthorized Access: Admin Privileges Required for Entry."
+    );
 
-  // Retrieve subCategory
-  const response= await db.subCategory.delete({
-    where:{
-      id:subCategoryId,
-    }
+  // Ensure subCategory ID is provided
+  if (!subCategoryId) throw new Error("Please provide category ID.");
+
+  // Delete subCategory from the database
+  const response = await db.subCategory.delete({
+    where: {
+      id: subCategoryId,
+    },
   });
-  
   return response;
-}
+};
+
+// Function: getSubcategories
+// Description: Retrieves subcategories from the database, with options for limiting results and random selection.
+// Parameters:
+//   - limit: Number indicating the maximum number of subcategories to retrieve.
+//   - random: Boolean indicating whether to return random subcategories.
+// Returns: List of subcategories based on the provided options.
+export const getSubcategories = async (
+  limit: number | null,
+  random: boolean = false
+): Promise<SubCategory[]> => {
+  // Define SortOrder enum
+  enum SortOrder {
+    asc = "asc",
+    desc = "desc",
+  }
+  try {
+    // Define the query options
+    const queryOptions = {
+      take: limit || undefined, // Use the provided limit or undefined for no limit
+      orderBy: random ? { createdAt: SortOrder.desc } : undefined, // Use SortOrder for ordering
+    };
+
+    // If random selection is required, use a raw query to randomize
+    if (random) {
+      const subcategories = await db.$queryRaw<SubCategory[]>`
+    SELECT * FROM SubCategory
+    ORDER BY RAND()
+    LIMIT ${limit || 10} 
+    `;
+      return subcategories;
+    } else {
+      // Otherwise, fetch subcategories based on the defined query options
+      const subcategories = await db.subCategory.findMany(queryOptions);
+      return subcategories;
+    }
+  } catch (error) {
+    // Log and re-throw any errors
+    throw error;
+  }
+};

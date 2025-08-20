@@ -1,163 +1,184 @@
 "use server";
 
 // Clerk
-import { clerkClient, currentUser } from "@clerk/nextjs/server";
-
-// Prisma model
-import { Category } from "@prisma/client";
+import { currentUser } from "@clerk/nextjs/server";
 
 // DB
 import { db } from "@/lib/db";
 
+// Prisma model
+import { Category } from "@prisma/client";
+
+// Function: upsertCategory
+// Description: Upserts a category into the database, updating if it exists or creating a new one if not.
+// Permission Level: Admin only
+// Parameters:
+//   - category: Category object containing details of the category to be upserted.
+// Returns: Updated or newly created category details.
 export const upsertCategory = async (category: Category) => {
   try {
-    console.log("Received category data:", category);
-
     // Get current user
     const user = await currentUser();
 
     // Ensure user is authenticated
-    if (!user) {
-      throw new Error("Utilisateur non authentifié.");
-    }
+    if (!user) throw new Error("Unauthenticated.");
 
     // Verify admin permission
-    if (user.privateMetadata.role !== "ADMIN") {
-      throw new Error("Accès non autorisé : Privilèges d'administrateur requis.");
-    }
+    if (user.privateMetadata.role !== "ADMIN")
+      throw new Error(
+        "Unauthorized Access: Admin Privileges Required for Entry."
+      );
 
-    if (!category) {
-      throw new Error("Entrez des donnees de categorie s'il vous plait.");
-    }
+    // Ensure category data is provided
+    if (!category) throw new Error("Please provide category data.");
 
-    // Destructure the received data
-    const { id, name, url, image, featured } = category;
-
-    // Validate required fields
-    if (!name || name.trim() === '') {
-      throw new Error("Le nom de Categorie est obligatoire.");
-    }
-    
-    if (!url || url.trim() === '') {
-      throw new Error("L'URL de Categorie est obligatoire.");
-    }
-
-    // Check for existing category with same name or URL
+    // Throw error if category with same name or URL already exists
     const existingCategory = await db.category.findFirst({
       where: {
         AND: [
           {
-            OR: [{ name: name.trim() }, { url: url.trim() }],
+            OR: [{ name: category.name }, { url: category.url }],
           },
           {
-            NOT: { id: id },
+            NOT: {
+              id: category.id,
+            },
           },
         ],
       },
     });
 
+    // Throw error if category with same name or URL already exists
     if (existingCategory) {
-      if (existingCategory.name === name.trim()) {
-        throw new Error("Une catégorie avec le même nom existe déjà.");
-      } else if (existingCategory.url === url.trim()) {
-        throw new Error("Une catégorie avec la même URL existe déjà.");
+      let errorMessage = "";
+      if (existingCategory.name === category.name) {
+        errorMessage = "A category with the same name already exists";
+      } else if (existingCategory.url === category.url) {
+        errorMessage = "A category with the same URL already exists";
       }
+      throw new Error(errorMessage);
     }
 
     // Upsert category into the database
     const categoryDetails = await db.category.upsert({
-      where: { id },
-      update: {
-        name: name.trim(),
-        url: url.trim(),
-        image,
-        featured,
+      where: {
+        id: category.id,
       },
-      create: {
-        id,
-        name: name.trim(),
-        url: url.trim(),
-        image,
-        featured,
-      },
+      update: category,
+      create: category,
     });
-
-    console.log("Categorie modifié avec succes:", categoryDetails);
     return categoryDetails;
   } catch (error) {
-    console.error("Erreur durant la modification:", error);
+    // Log and re-throw any errors
     throw error;
   }
 };
 
-
-
 // Function: getAllCategories
-// Permission level: Public
 // Description: Retrieves all categories from the database.
-export const getAllCategories = async() => {
+// Permission Level: Public
+// Returns: Array of categories sorted by updatedAt date in descending order.
+export const getAllCategories = async (storeUrl?: string) => {
+  let storeId: string | undefined;
+
+  if (storeUrl) {
+    // Retrieve the storeId based on the storeUrl
+    const store = await db.store.findUnique({
+      where: { url: storeUrl },
+    });
+
+    // If no store is found, return an empty array or handle as needed
+    if (!store) {
+      return [];
+    }
+
+    storeId = store.id;
+  }
+
   // Retrieve all categories from the database
   const categories = await db.category.findMany({
-    orderBy:{
-      updatedAt:"desc",
+    where: storeId
+      ? {
+          products: {
+            some: {
+              storeId: storeId,
+            },
+          },
+        }
+      : {},
+    include: {
+      subCategories: true,
     },
-  })
-  // Returns: Array of categories sorted by updatedAt date in descending order.
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
   return categories;
-}
+};
 
+// Function: getAllCategoriesForCategory
+// Description: Retrieves all SubCategories fro a category from the database.
+// Permission Level: Public
+// Returns: Array of subCategories of category sorted by updatedAt date in descending order.
+export const getAllCategoriesForCategory = async (categoryId: string) => {
+  // Retrieve all subcategories of category from the database
+  const subCategories = await db.subCategory.findMany({
+    where: {
+      categoryId,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+  return subCategories;
+};
 
 // Function: getCategory
-// Permission level: Public
 // Description: Retrieves a specific category from the database.
+// Access Level: Public
 // Parameters:
-//   - categoryID: The id of the category to be retrieved.
+//   - categoryId: The ID of the category to be retrieved.
 // Returns: Details of the requested category.
-
-export const getCategory = async(categoryId:string)=>{
-  
-  // Ensure categoryId is provided
-  if(!categoryId) throw new Error("Entrer un ID de categorie s'il vous plait");
+export const getCategory = async (categoryId: string) => {
+  // Ensure category ID is provided
+  if (!categoryId) throw new Error("Please provide category ID.");
 
   // Retrieve category
-  const category= await db.category.findUnique({
-    where:{
-      id:categoryId,
-    }
+  const category = await db.category.findUnique({
+    where: {
+      id: categoryId,
+    },
   });
-  
   return category;
-}
-  
+};
 
 // Function: deleteCategory
-// Permission level: Admin
-// Description: Deletes a specific category from the database.
+// Description: Deletes a category from the database.
+// Permission Level: Admin only
 // Parameters:
-//   - categoryID: The id of the category to be deleted.
-// Returns: A respomse indicating success or failure to delete selected category.
-
-export const deleteCategory = async(categoryId:string)=>{
-  // Make sure a categoryId is given
-  if(!categoryId) throw new Error("Entrer un ID de categorie s'il vous plait");
-
+//   - categoryId: The ID of the category to be deleted.
+// Returns: Response indicating success or failure of the deletion operation.
+export const deleteCategory = async (categoryId: string) => {
   // Get current user
   const user = await currentUser();
 
   // Check if user is authenticated
-  if(!user) throw new Error('Utilisateur non authentifie') ;
+  if (!user) throw new Error("Unauthenticated.");
 
   // Verify admin permission
-  if(user.privateMetadata.role !== "ADMIN")
+  if (user.privateMetadata.role !== "ADMIN")
     throw new Error(
-  "Access Non Autorise: Privileges d'Administrateur requis.")
+      "Unauthorized Access: Admin Privileges Required for Entry."
+    );
 
-  // Retrieve category
-  const response= await db.category.delete({
-    where:{
-      id:categoryId,
-    }
+  // Ensure category ID is provided
+  if (!categoryId) throw new Error("Please provide category ID.");
+
+  // Delete category from the database
+  const response = await db.category.delete({
+    where: {
+      id: categoryId,
+    },
   });
-  
   return response;
-}
+};

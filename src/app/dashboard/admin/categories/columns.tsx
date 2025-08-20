@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // Hooks and utilities
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useModal } from "@/providers/modal-provider";
 
 // Lucide icons
@@ -136,7 +136,7 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Ouvrir le menu</span>
+            <span className="sr-only">Open menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -160,12 +160,12 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
             }}
           >
             <Edit size={15} />
-            Modifier les détails
+            Edit Details
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
             <DropdownMenuItem className="flex gap-2" onClick={() => {}}>
-              <Trash size={15} /> Supprimer la catégorie
+              <Trash size={15} /> Delete category
             </DropdownMenuItem>
           </AlertDialogTrigger>
         </DropdownMenuContent>
@@ -173,14 +173,15 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
       <AlertDialogContent className="max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-left">
-            Etes vous certain ?
+            Are you absolutely sure?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-left">
-            Cette action ne peux etre annulé. Vous allez supprimer la catégorie et toute les informations associé.
+            This action cannot be undone. This will permanently delete the
+            category and related data.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex items-center">
-          <AlertDialogCancel className="mb-2">Annuler</AlertDialogCancel>
+          <AlertDialogCancel className="mb-2">Cancel</AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             className="bg-destructive hover:bg-destructive mb-2 text-white"
@@ -188,15 +189,15 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
               setLoading(true);
               await deleteCategory(rowData.id);
               toast({
-                title: "Categorie supprimé",
-                description: "La categorie a été supprimé.",
+                title: "Deleted category",
+                description: "The category has been deleted.",
               });
               setLoading(false);
               router.refresh();
               setClose();
             }}
           >
-            Supprimer
+            Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 // Custom components
 import CustomModal from "@/components/dashboard/shared/custom-modal";
+import SubCategoryDetails from "@/components/dashboard/forms/subCategory-details";
 
 // UI components
 import {
@@ -29,11 +30,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import SubCategoryDetails from "@/components/dashboard/forms/subCategory-details";
-
 
 // Hooks and utilities
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useModal } from "@/providers/modal-provider";
 
 // Lucide icons
@@ -46,8 +45,8 @@ import {
 } from "lucide-react";
 
 // Queries
-import { deleteSubCategory, getSubCategory } from "@/queries/subCategory";
 import { getAllCategories } from "@/queries/category";
+import { deleteSubCategory, getSubCategory } from "@/queries/subCategory";
 
 // Tanstack React Table
 import { ColumnDef } from "@tanstack/react-table";
@@ -56,12 +55,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Category } from "@prisma/client";
 
 // Types
-import { SubCategoryWithCategory } from "@/lib/types";
+import { SubCategoryWithCategoryType } from "@/lib/types";
 
-
-// Custom type to accomadate the subcategory special type since it is a merge of two types
-
-export const columns: ColumnDef<SubCategoryWithCategory>[] = [
+export const columns: ColumnDef<SubCategoryWithCategoryType>[] = [
   {
     accessorKey: "image",
     header: "",
@@ -98,15 +94,13 @@ export const columns: ColumnDef<SubCategoryWithCategory>[] = [
       return <span>/{row.original.url}</span>;
     },
   },
-
   {
-    accessorKey: "catégorie",
-    header: "Catégorie",
+    accessorKey: "category",
+    header: "Category",
     cell: ({ row }) => {
       return <span>{row.original.category.name}</span>;
     },
   },
-
   {
     accessorKey: "featured",
     header: "Featured",
@@ -134,39 +128,35 @@ export const columns: ColumnDef<SubCategoryWithCategory>[] = [
 
 // Define props interface for CellActions component
 interface CellActionsProps {
-  rowData: SubCategoryWithCategory;
+  rowData: SubCategoryWithCategoryType;
 }
 
 // CellActions component definition
 const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
-  // Hooks
+  // Declare all hooks at the top
   const { setOpen, setClose } = useModal();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-
-  // Return null if rowData or rowData.id don't exist
-  if (!rowData || !rowData.id) return null;
-
-
-  //Get the categories data
   const [categories, setCategories] = useState<Category[]>([]);
-  
-  useEffect(()=>{
-    const fetchCategories = async()=>{
+
+  useEffect(() => {
+    const fetchCategories = async () => {
       const categories = await getAllCategories();
       setCategories(categories);
     };
     fetchCategories();
-  },[])
-  
+  }, []);
+
+  // Early return only after hooks are declared
+  if (!rowData || !rowData.id) return null;
 
   return (
     <AlertDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Ouvrir le menu</span>
+            <span className="sr-only">Open menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -176,10 +166,11 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
             className="flex gap-2"
             onClick={() => {
               setOpen(
-                // Custom modal component
                 <CustomModal>
-                  {/* Store details component */}
-                  <SubCategoryDetails categories={categories} data={{ ...rowData }} />
+                  <SubCategoryDetails
+                    categories={categories}
+                    data={{ ...rowData }}
+                  />
                 </CustomModal>,
                 async () => {
                   return {
@@ -190,12 +181,12 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
             }}
           >
             <Edit size={15} />
-            Modifier les détails
+            Edit Details
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
             <DropdownMenuItem className="flex gap-2" onClick={() => {}}>
-              <Trash size={15} /> Supprimer la sous-catégorie
+              <Trash size={15} /> Delete subCategory
             </DropdownMenuItem>
           </AlertDialogTrigger>
         </DropdownMenuContent>
@@ -203,14 +194,15 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
       <AlertDialogContent className="max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-left">
-            Etes vous certain ?
+            Are you absolutely sure?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-left">
-            Cette action ne peux etre annulé. Vous allez supprimer la sous-catégorie et toute les informations associé.
+            This action cannot be undone. This will permanently delete the
+            subCategory and related data.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex items-center">
-          <AlertDialogCancel className="mb-2">Annuler</AlertDialogCancel>
+          <AlertDialogCancel className="mb-2">Cancel</AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             className="bg-destructive hover:bg-destructive mb-2 text-white"
@@ -218,15 +210,15 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
               setLoading(true);
               await deleteSubCategory(rowData.id);
               toast({
-                title: "Sous-Categorie supprimé",
-                description: "La sous-categorie a été supprimé.",
+                title: "Deleted subCategory",
+                description: "The subCategory has been deleted.",
               });
               setLoading(false);
               router.refresh();
               setClose();
             }}
           >
-            Supprimer
+            Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

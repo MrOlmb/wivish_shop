@@ -1,60 +1,42 @@
-// Import React and Next.js
+// React,Next.js
 import { ReactNode } from "react";
+import { redirect } from "next/navigation";
 
-// Custom UI components
+// Custom UI Components
 import Header from "@/components/dashboard/header/header";
 import Sidebar from "@/components/dashboard/sidebar/sidebar";
 
 // Clerk
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
 
-// Constants
-import { SellerDashboardSidebarOptions } from "@/constants/data";
+// DB
+import { db } from "@/lib/db";
 
 export default async function SellerStoreDashboardLayout({
   children,
-  params,
 }: {
   children: ReactNode;
-  params: { storeUrl: string };
 }) {
-  // Check if the user is authenticated, redirect to the homepage if not authenticated.
+  // Fetch the current user. If the user is not authenticated, redirect them to the home page.
   const user = await currentUser();
   if (!user) {
     redirect("/");
+    return; // Ensure no further code is executed after redirect
   }
 
-  // Check if user has SELLER role
-  if (user.privateMetadata.role !== "SELLER") {
-    redirect("/");
-  }
-
-  // Verify store ownership
-  const store = await db.store.findUnique({
+  // Retrieve the list of stores associated with the authenticated user.
+  const stores = await db.store.findMany({
     where: {
-      url: params.storeUrl,
       userId: user.id,
     },
   });
 
-  if (!store) {
-    redirect("/dashboard/seller");
-  }
-
   return (
-    <div className="h-full">
-      <Header />
-      <div className="flex mt-16">
-        {/* Sidebar */}
-        <div className="hidden md:flex w-64 flex-col fixed inset-y-0 mt-16">
-          <Sidebar menuLinks={SellerDashboardSidebarOptions} />
-        </div>
-        {/* Main content */}
-        <main className="md:pl-64 w-full">
-          <div className="p-4">{children}</div>
-        </main>
+    <div className="h-full w-full flex">
+      <Sidebar stores={stores} />
+      <div className="w-full ml-[300px]">
+        <Header />
+        <div className="w-full mt-[75px] p-4">{children}</div>
       </div>
     </div>
   );

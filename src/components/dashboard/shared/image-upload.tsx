@@ -58,7 +58,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
     return (
       <div
         className={cn(
-          "relative  rounded-full w-52 h-52 bg-gray-200 border-2 border-white shadow-2xl",
+          "relative  rounded-full w-52 h-52  bg-gray-200 border-2 border-white shadow-2xl overflow-visible",
           {
             "bg-red-100": error,
             "animate-pulse": isBouncing,
@@ -74,7 +74,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
             className="w-52 h-52 rounded-full object-cover absolute top-0 left-0 bottom-0 right-0"
           />
         )}
-        <CldUploadWidget onSuccess={onUpload} uploadPreset="preset1">
+        <CldUploadWidget onSuccess={onUpload} uploadPreset="ufb48euh">
           {({ open }) => {
             const onClick = () => {
               open();
@@ -124,7 +124,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
             className="w-full h-full rounded-lg object-cover"
           />
         )}
-        <CldUploadWidget onSuccess={onUpload} uploadPreset="preset1">
+        <CldUploadWidget onSuccess={onUpload} uploadPreset="ufb48euh">
           {({ open }) => {
             const onClick = () => {
               open();
@@ -188,7 +188,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
               </div>
             ))}
         </div>
-        <CldUploadWidget onSuccess={onUpload} uploadPreset="preset1">
+        <CldUploadWidget onSuccess={onUpload} uploadPreset="ufb48euh">
           {({ open }) => {
             const onClick = () => {
               open();
@@ -223,5 +223,3 @@ const ImageUpload: FC<ImageUploadProps> = ({
 };
 
 export default ImageUpload;
-
-

@@ -28,7 +28,7 @@ import {
 import { FilePlus2, Search } from "lucide-react";
 
 // Modal provider hook
-import {useModal} from "@/providers/modal-provider";
+import { useModal } from "@/providers/modal-provider";
 import Link from "next/link";
 
 // Props interface for the table component
@@ -107,7 +107,7 @@ export default function DataTable<TData, TValue>({
           {newTabLink && (
             <Link href={newTabLink}>
               <Button variant="outline">
-                <FilePlus2 className="me-1" /> Créer dans une nouvelle page
+                <FilePlus2 className="me-1" /> Create in new page
               </Button>
             </Link>
           )}
