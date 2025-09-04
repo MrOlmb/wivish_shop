@@ -144,7 +144,7 @@ const CellActions: React.FC<CellActionsProps> = ({ coupon }) => {
                   {/* Store details component */}
                   <CouponDetails
                     data={{ ...coupon }}
-                    storeUrl={params.storeUrl}
+                    storeId={coupon.storeId}
                   />
                 </CustomModal>,
                 async () => {

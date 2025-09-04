@@ -16,28 +16,28 @@ import {
   adminDashboardSidebarOptions,
 } from "@/constants/data";
 
-// Prisma models
-import { Store } from "@prisma/client";
-import StoreSwitcher from "./store-switcher";
 
 interface SidebarProps {
   isAdmin?: boolean;
-  stores?: Store[];
 }
 
-const Sidebar: FC<SidebarProps> = async ({ isAdmin, stores }) => {
+const Sidebar: FC<SidebarProps> = async ({ isAdmin }) => {
   const user = await currentUser();
   return (
-    <div className="w-[300px] border-r h-screen p-4 flex flex-col fixed top-0 left-0 bottom-0">
-      <Logo width="100%" height="180px" />
-      <span className="mt-3" />
-      {user && <UserInfo user={user} />}
-      {!isAdmin && stores && <StoreSwitcher stores={stores} />}
-      {isAdmin ? (
-        <SidebarNavAdmin menuLinks={adminDashboardSidebarOptions} />
-      ) : (
-        <SidebarNavSeller menuLinks={SellerDashboardSidebarOptions} />
-      )}
+    <div className="w-[300px] border-r h-screen fixed top-0 left-0 bottom-0 bg-white flex flex-col">
+      <div className="p-4 flex-shrink-0">
+        <Logo width="100%" height="100px" />
+      </div>
+      <div className="px-4 pb-4 flex-shrink-0">
+        {user && <UserInfo user={user} />}
+      </div>
+      <div className="flex-1 px-4 pb-4">
+        {isAdmin ? (
+          <SidebarNavAdmin menuLinks={adminDashboardSidebarOptions} />
+        ) : (
+          <SidebarNavSeller menuLinks={SellerDashboardSidebarOptions} />
+        )}
+      </div>
     </div>
   );
 };

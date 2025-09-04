@@ -5,6 +5,16 @@ import { NextResponse } from "next/server";
 // POST handler for indexing products and variants to Elasticsearch
 export async function POST() {
   try {
+    // Check if Elasticsearch client is configured
+    if (!client) {
+      return NextResponse.json(
+        {
+          message: "Elasticsearch is not configured. Set ELASTICSEARCH_CLOUD_ID and ELASTICSEARCH_API_KEY environment variables.",
+        },
+        { status: 503 }
+      );
+    }
+
     // Fetch products and their variants with images where order = 1 from the database using Prisma
     const products = await db.product.findMany({
       include: {

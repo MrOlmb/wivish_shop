@@ -1,41 +1,32 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { User } from "@clerk/nextjs/server";
-import React, { useReducer } from "react";
 
 export default function UserInfo({ user }: { user: User | null }) {
   const role = user?.privateMetadata.role?.toString();
   return (
-    <div>
-      <div>
-        <Button
-          className="w-full mt-5 mb-4 flex items-center justify-between py-10"
-          variant="ghost"
-        >
-          <div className="flex items-center text-left gap-2">
-            <Avatar className="w-16 h-16">
-              <AvatarImage
-                src={user?.imageUrl}
-                alt={`${user?.firstName!} ${user?.lastName!}`}
-              />
-              <AvatarFallback className="bg-primary text-white">
-                {user?.firstName} {user?.lastName}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col gap-y-1">
-              {user?.firstName} {user?.lastName}
-              <span className="text-muted-foreground">
-                {user?.emailAddresses[0].emailAddress}
-              </span>
-              <span className="w-fit">
-                <Badge variant="secondary" className="capitalize">
-                  {role?.toLocaleLowerCase()} Dashboard
-                </Badge>
-              </span>
-            </div>
-          </div>
-        </Button>
+    <div className="px-2 py-3 mb-4 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-3">
+        <Avatar className="w-12 h-12">
+          <AvatarImage
+            src={user?.imageUrl}
+            alt={`${user?.firstName!} ${user?.lastName!}`}
+          />
+          <AvatarFallback className="bg-primary text-white text-sm">
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col gap-y-1 flex-1 min-w-0">
+          <p className="font-medium text-sm truncate">
+            {user?.firstName} {user?.lastName}
+          </p>
+          <p className="text-xs text-muted-foreground truncate">
+            {user?.emailAddresses[0].emailAddress}
+          </p>
+          <Badge variant="secondary" className="capitalize text-xs w-fit">
+            {role?.toLowerCase()}
+          </Badge>
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { FC } from "react";
 import Image from "next/image";
 
 // Logo image
-import LogoImg from "../../../public/assets/icons/logo-1.png";
+import LogoImg from "../../../public/assets/icons/logo.png";
 
 interface LogoProps {
   width: string;
@@ -12,11 +12,11 @@ interface LogoProps {
 
 const Logo: FC<LogoProps> = ({ width, height }) => {
   return (
-    <div className="z-50" style={{ width: width, height: height }}>
+    <div style={{ width: width, height: height }}>
       <Image
         src={LogoImg}
-        alt="GoShop"
-        className="w-full h-full object-cover overflow-visible"
+        alt="Wivish"
+        className="w-full h-full object-contain"
       />
     </div>
   );

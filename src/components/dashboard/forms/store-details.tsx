@@ -122,7 +122,7 @@ const StoreDetails: FC<StoreDetailsProps> = ({ data }) => {
       if (data?.id) {
         router.refresh();
       } else {
-        router.push(`/dashboard/seller/stores/`);
+        router.push("/dashboard/seller");
       }
     } catch (error: any) {
       // Handling form submission errors

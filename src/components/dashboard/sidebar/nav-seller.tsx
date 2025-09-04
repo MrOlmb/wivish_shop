@@ -29,8 +29,6 @@ export default function SidebarNavSeller({
   menuLinks: DashboardSidebarMenuInterface[];
 }) {
   const pathname = usePathname();
-  const storeUrlStart = pathname.split("/stores/")[1];
-  const activeStore = storeUrlStart ? storeUrlStart.split("/")[0] : "";
 
   return (
     <nav className="relative grow">
@@ -43,19 +41,19 @@ export default function SidebarNavSeller({
               let icon;
               const iconSearch = icons.find((icon) => icon.value === link.icon);
               if (iconSearch) icon = <iconSearch.path />;
+              
+              // Generate href for single-store architecture
+              const href = link.link === "" ? "/dashboard/seller" : `/dashboard/seller/${link.link}`;
+              
               return (
                 <CommandItem
                   key={index}
                   className={cn("w-full h-12 cursor-pointer mt-1", {
-                    "bg-accent text-accent-foreground":
-                      link.link === ""
-                        ? pathname === `/dashboard/seller/stores/${activeStore}`
-                        : `/dashboard/seller/stores/${activeStore}/${link.link}` ===
-                          pathname,
+                    "bg-accent text-accent-foreground": href === pathname,
                   })}
                 >
                   <Link
-                    href={`/dashboard/seller/stores/${activeStore}/${link.link}`}
+                    href={href}
                     className="flex items-center gap-2 hover:bg-transparent rounded-md transition-all w-full"
                   >
                     {icon}

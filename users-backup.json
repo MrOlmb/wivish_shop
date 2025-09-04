@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-09-03T09:39:48.677Z",
+  "users": [
+    {
+      "id": "user_2yAmaosRcmNe7MDJsDJfUGMuLVy",
+      "name": "Elvis Destin Olembe",
+      "email": "kingolembe09@gmail.com",
+      "picture": "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18yeTM0ZHdhYzc4bHFoU0dUNUhBU1JHR2dFMnkiLCJyaWQiOiJ1c2VyXzJ5QW1hb3NSY21OZTdNREpzREpmVUdNdUxWeSIsImluaXRpYWxzIjoiRU8ifQ",
+      "role": "SELLER",
+      "createdAt": "2025-07-30T12:42:53.548Z",
+      "updatedAt": "2025-09-02T14:00:01.050Z"
+    },
+    {
+      "id": "user_2yAmrgIiqi6FCFpnRbmLU4pyDTI",
+      "name": "Whiplash null",
+      "email": "lvsdestin@gmail.com",
+      "picture": "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18yeTM0ZHdhYzc4bHFoU0dUNUhBU1JHR2dFMnkiLCJyaWQiOiJ1c2VyXzJ5QW1yZ0lpcWk2RkNGcG5SYm1MVTRweURUSSIsImluaXRpYWxzIjoiVyJ9",
+      "role": "ADMIN",
+      "createdAt": "2025-07-30T12:47:57.773Z",
+      "updatedAt": "2025-08-18T14:33:22.797Z"
+    },
+    {
+      "id": "user_30dHcOnqPremWTJQQ8rBuHxKmZG",
+      "name": "null null",
+      "email": "christwivichntsiba@gmail.com",
+      "picture": "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18yeTM0ZHdhYzc4bHFoU0dUNUhBU1JHR2dFMnkiLCJyaWQiOiJ1c2VyXzMwZEhjT25xUHJlbVdUSlFROHJCdUh4S21aRyJ9",
+      "role": "SELLER",
+      "createdAt": "2025-07-31T08:30:10.363Z",
+      "updatedAt": "2025-07-31T08:32:28.926Z"
+    },
+    {
+      "id": "user_31SDTzKWzYYPz63WvOrHV7Df3pG",
+      "name": "null null",
+      "email": "elvisolembe1@gmail.com",
+      "picture": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvdXBsb2FkZWQvaW1nXzMxU0RaaTFRcWRyMUFuR1dKbFFhODMwMU5GUyJ9",
+      "role": "ADMIN",
+      "createdAt": "2025-08-19T14:07:49.801Z",
+      "updatedAt": "2025-08-19T14:07:49.801Z"
+    }
+  ]
+}

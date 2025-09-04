@@ -26,9 +26,9 @@ const barlowFont = Barlow({
 
 // Metadata
 export const metadata: Metadata = {
-  title: "GoShop",
+  title: "Wivish Store",
   description:
-    "Bienvenue sur WIViCH Store, votre destination ultime pour un shopping en ligne sans effort ! Découvrez une vaste sélection de produits proposés par nos experts de confiance, réunis en un seul marché pratique. Avec WIVICH Store, faire ses achats depuis la Chine devient simple, rapide et agréable. Trouvez tout ce dont vous avez besoin, de la mode et de l’électronique aux essentiels pour la maison, et profitez de la joie d’un shopping en ligne sans tracas. Commencez à explorer dès aujourd’hui !",
+    "Bienvenue sur Wivish Store, votre destination ultime pour un shopping en ligne sans effort ! Découvrez une vaste sélection de produits proposés par nos experts de confiance, réunis en un seul marché pratique. Avec Wivish Store, faire ses achats depuis la Chine devient simple, rapide et agréable. Trouvez tout ce dont vous avez besoin, de la mode et de l'électronique aux essentiels pour la maison, et profitez de la joie d'un shopping en ligne sans tracas. Commencez à explorer dès aujourd'hui !",
 };
 
 export default function RootLayout({
