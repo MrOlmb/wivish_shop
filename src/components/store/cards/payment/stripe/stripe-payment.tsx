@@ -47,7 +47,7 @@ export default function StripePayment({ orderId }: { orderId: string }) {
         elements,
         clientSecret,
         confirmParams: {
-          return_url: "http://localhost:3000",
+          return_url: `${window.location.origin}`,
         },
         redirect: "if_required",
       });
@@ -55,7 +55,7 @@ export default function StripePayment({ orderId }: { orderId: string }) {
       if (!error && paymentIntent) {
         try {
           const res = await createStripePayment(orderId, paymentIntent);
-          if (!res.paymentDetails?.paymentInetntId) throw new Error("Failed");
+          if (!res.paymentDetails?.paymentIntentId) throw new Error("Failed");
           router.refresh();
         } catch (error: any) {
           setErrorMessage(error.toString());

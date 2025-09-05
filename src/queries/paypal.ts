@@ -110,7 +110,7 @@ export const capturePayPalPayment = async (
       orderId,
     },
     update: {
-      paymentInetntId: paymentId,
+      paymentIntentId: paymentId,
       status:
         captureData.status === "COMPLETED" ? "Completed" : captureData.status,
       amount: Number(
@@ -122,7 +122,7 @@ export const capturePayPalPayment = async (
       userId: user.id,
     },
     create: {
-      paymentInetntId: paymentId,
+      paymentIntentId: paymentId,
       status:
         captureData.status === "COMPLETED" ? "Completed" : captureData.status,
       amount: Number(

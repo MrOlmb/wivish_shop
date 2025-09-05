@@ -66,7 +66,7 @@ export const createStripePayment = async (
         orderId,
       },
       update: {
-        paymentInetntId: paymentIntent.id,
+        paymentIntentId: paymentIntent.id,
         paymentMethod: "Stripe",
         amount: paymentIntent.amount,
         currency: paymentIntent.currency,
@@ -77,7 +77,7 @@ export const createStripePayment = async (
         userId: user.id,
       },
       create: {
-        paymentInetntId: paymentIntent.id,
+        paymentIntentId: paymentIntent.id,
         paymentMethod: "Stripe",
         amount: paymentIntent.amount,
         currency: paymentIntent.currency,
