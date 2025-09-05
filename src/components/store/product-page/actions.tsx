@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import QuantitySelector from "./quantity-selector";
 import ReturnPrivacySecurityCard from "./returns-security-privacy-card";
 import ShipTo from "./shipping/ship-to";
@@ -54,28 +54,6 @@ export default function ProductPageActions({
   const [loading, setLoading] = useState(true);
   const [shippingDetails, setShippingDetails] =
     useState<ShippingDetailsType | null>(null);
-
-  useEffect(() => {
-    const getShippingDetailsHandler = async () => {
-      const data = await getShippingDetails(
-        shippingFeeMethod,
-        userCountry,
-        store,
-        freeShipping,
-        freeShippingForAllCountries
-      );
-      setShippingDetails(data);
-      setLoading(false);
-      handleChange("shippingMethod", data.shippingFeeMethod);
-      handleChange("deliveryTimeMax", data.deliveryTimeMax);
-      handleChange("deliveryTimeMin", data.deliveryTimeMin);
-      handleChange("shippingFee", data.shippingFee);
-      handleChange("extraShippingFee", data.extraShippingFee);
-      handleChange("isFreeShipping", data.isFreeShipping);
-      handleChange("shippingService", data.shippingService);
-    };
-    getShippingDetailsHandler();
-  }, [userCountry]);
 
   const handleAddToCart = () => {
     if (maxQty <= 0) return;

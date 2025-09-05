@@ -1,6 +1,6 @@
 // Next.js
 import type { Metadata } from "next";
-import { Inter, Barlow } from "next/font/google";
+import localFont from "next/font/local";
 
 // Global css
 import "./globals.css";
@@ -17,10 +17,12 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import ModalProvider from "@/providers/modal-provider";
 
 // Fonts
-const interFont = Inter({ subsets: ["latin"] });
-const barlowFont = Barlow({
-  subsets: ["latin"],
-  weight: ["500", "700"],
+const interFont = localFont({
+  src: "../../public/fonts/inter/inter-v19-latin-regular.woff2",
+});
+const barlowFont = localFont({
+  src: "../../public/fonts/barlow/barlow-v12-latin-regular.woff2",
+  weight: "400",
   variable: "--font-barlow",
 });
 

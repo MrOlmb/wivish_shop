@@ -1,6 +1,6 @@
 import { CartProductType } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 
 interface SimplifiedSize {
   id: string;
@@ -29,20 +29,23 @@ const ProductPrice: FC<Props> = ({
     undefined
   );
 
+  const localHandleChange = useCallback((property: keyof CartProductType, value: any) => {
+    handleChange(property, value);
+  }, [handleChange]);
+
   useEffect(() => {
     if (sizes && sizes.length > 0) {
       if (sizeId) {
         const foundSize = sizes.find((size) => size.id === sizeId);
         if (foundSize) {
           setSelectedSize(foundSize);
-          const discountedPrice =
-            foundSize.price * (1 - foundSize.discount / 100);
-          handleChange("price", discountedPrice);
-          handleChange("stock", foundSize.quantity);
+          const discountedPrice = foundSize.price * (1 - foundSize.discount / 100);
+          localHandleChange("price", discountedPrice);
+          localHandleChange("stock", foundSize.quantity);
         }
       }
     }
-  }, [sizeId, sizes]);
+  }, [sizeId, sizes, localHandleChange]);
 
   // If no sizeId passed, calculate range of prices and total quantity
   if (!sizeId && sizes && sizes.length > 0) {

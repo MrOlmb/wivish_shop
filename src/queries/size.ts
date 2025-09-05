@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { Store } from "@prisma/client";
 
 // Function: getFilteredSizes
 // Description: Retrieves all sizes that exist in a product based on the filters (category, subCategory, offer).
@@ -92,4 +93,48 @@ export const getFilteredSizes = async (
     sizes: uniqueSizesArray.map((size) => ({ size })),
     count,
   };
+};
+
+export const getAllSizes = async (filters: {
+  category?: string;
+  subCategory?: string;
+  offer?: string;
+  storeId?: string;
+}) => {
+  try {
+    const { category, subCategory, offer, storeId } = filters;
+
+    let store: Store | null = null;
+
+    if (storeId) {
+      // Retrieve the store based on the storeId
+      store = await db.store.findUnique({
+        where: { id: storeId },
+      });
+    }
+
+    const sizes = await db.size.findMany({
+      where: {
+        productVariant: {
+          product: {
+            category: category
+              ? { url: category }
+              : undefined,
+            subCategory: subCategory
+              ? { url: subCategory }
+              : undefined,
+            offerTag: offer
+              ? { url: offer }
+              : undefined,
+            storeId: store ? store.id : undefined,
+          },
+        },
+      },
+      distinct: ["size"],
+    });
+
+    return sizes;
+  } catch (error) {
+    throw error;
+  }
 };

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { Store } from "@prisma/client";
 
 export const getFilteredColors = async (
   filters: {
@@ -75,4 +76,48 @@ export const getFilteredColors = async (
     colors: uniqueColorsArray.map((color) => ({ name: color })),
     count,
   };
+};
+
+export const getAllColors = async (filters: {
+  category?: string;
+  subCategory?: string;
+  offer?: string;
+  storeId?: string;
+}) => {
+  try {
+    const { category, subCategory, offer, storeId } = filters;
+
+    let store: Store | null = null;
+
+    if (storeId) {
+      // Retrieve the store based on the storeId
+      store = await db.store.findUnique({
+        where: { id: storeId },
+      });
+    }
+
+    const colors = await db.color.findMany({
+      where: {
+        productVariant: {
+          product: {
+            category: category
+              ? { url: category }
+              : undefined,
+            subCategory: subCategory
+              ? { url: subCategory }
+              : undefined,
+            offerTag: offer
+              ? { url: offer }
+              : undefined,
+            storeId: store ? store.id : undefined,
+          },
+        },
+      },
+      distinct: ["name"],
+    });
+
+    return colors;
+  } catch (error) {
+    throw error;
+  }
 };

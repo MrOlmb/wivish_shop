@@ -1,7 +1,8 @@
 import COUNTRIES from "@/data/countries.json";
 import { SelectMenuOption } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, { MutableRefObject, useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 
 export interface CountrySelectorProps {
   id: string;
@@ -20,32 +21,30 @@ export default function CountrySelector({
   onChange,
   selectedValue,
 }: CountrySelectorProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      onToggle();
+    }
+  }, [onToggle]);
 
   useEffect(() => {
-    const mutableRef = ref as MutableRefObject<HTMLDivElement | null>;
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
 
-    const handleClickOutside = (event: any) => {
-      if (
-        mutableRef.current &&
-        !mutableRef.current.contains(event.target) &&
-        open
-      ) {
-        onToggle();
-        setQuery("");
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [ref]);
+  }, [open, handleClickOutside]);
 
   const [query, setQuery] = useState("");
 
   return (
-    <div ref={ref}>
+    <div ref={dropdownRef}>
       <div className="mt-1 relative">
         <button
           type="button"
@@ -59,10 +58,12 @@ export default function CountrySelector({
           disabled={disabled}
         >
           <span className="truncate flex items-center">
-            <img
+            <Image
               alt={`${selectedValue.name}`}
               src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${selectedValue.code}.svg`}
-              className={"inline mr-2 h-4 rounded-sm"}
+              width={16}
+              height={12}
+              className="inline mr-2 h-4 rounded-sm"
             />
             {selectedValue.name}
           </span>
@@ -135,15 +136,18 @@ export default function CountrySelector({
                         className="text-gray-900 cursor-default select-none relative py-2 pl-3 pr-9 flex items-center hover:bg-gray-50 transition"
                         id="listbox-option-0"
                         role="option"
+                        aria-selected={selectedValue.name === value.name}
                         onClick={() => {
                           onChange(value.name);
                           setQuery("");
                           onToggle();
                         }}
                       >
-                        <img
+                        <Image
                           alt={`${value.name}`}
                           src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${value.code}.svg`}
+                          width={20}
+                          height={15}
                           className={"inline mr-2 h-4 rounded-sm"}
                         />
 

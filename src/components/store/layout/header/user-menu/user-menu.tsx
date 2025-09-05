@@ -34,7 +34,7 @@ export default async function UserMenu() {
                 Bienvenue
               </span>
               <b className="font-bold text-xs text-white leading-4">
-                <span>Se connecter / S'inscrire</span>
+                <span>Se connecter / S&apos;inscrire</span>
                 <span className="text-white scale-[60%] align-middle inline-block">
                   <ChevronDown />
                 </span>
@@ -72,7 +72,7 @@ export default async function UserMenu() {
                       href="/sign-up"
                       className="h-10 text-sm hover:underline text-main-primary flex items-center justify-center cursor-pointer"
                     >
-                      S'inscrire
+                      S&apos;inscrire
                     </Link>
                   </div>
                 )}
@@ -137,7 +137,7 @@ export default async function UserMenu() {
                   <li>
                     <Link href="" legacyBehavior>
                       <a className="block text-sm text-main-primary py-1.5 hover:underline">
-                        Centre d'aide
+                        Centre d&apos;aide
                       </a>
                     </Link>
                   </li>

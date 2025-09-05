@@ -5,7 +5,7 @@ import {
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, useCallback } from "react";
 import {
   createStripePayment,
   createStripePaymentIntent,
@@ -18,14 +18,14 @@ export default function StripePayment({ orderId }: { orderId: string }) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    getClientSecret();
-  }, [orderId]);
-
-  const getClientSecret = async () => {
+  const getClientSecret = useCallback(async () => {
     const res = await createStripePaymentIntent(orderId);
     if (res.clientSecret) setClientSecret(res.clientSecret);
-  };
+  }, [orderId]);
+
+  useEffect(() => {
+    getClientSecret();
+  }, [getClientSecret]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

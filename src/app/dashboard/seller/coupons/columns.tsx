@@ -3,7 +3,7 @@
 // React, Next.js imports
 import { useState } from "react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 // UI components
 import {
@@ -119,10 +119,30 @@ const CellActions: React.FC<CellActionsProps> = ({ coupon }) => {
   const { toast } = useToast();
   const router = useRouter();
 
-  const params = useParams<{ storeUrl: string }>();
 
   // Return null if rowData or rowData.id don't exist
   if (!coupon) return null;
+
+  const onConfirm = async () => {
+    try {
+      setLoading(true);
+      await deleteCoupon(coupon.id, coupon.storeId);
+      router.refresh();
+      toast({
+        title: "Success",
+        description: `Coupon "${coupon.code}" deleted successfully.`,
+      });
+      setClose();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.toString(),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AlertDialog>
@@ -181,17 +201,7 @@ const CellActions: React.FC<CellActionsProps> = ({ coupon }) => {
           <AlertDialogAction
             disabled={loading}
             className="bg-destructive hover:bg-destructive mb-2 text-white"
-            onClick={async () => {
-              setLoading(true);
-              await deleteCoupon(coupon.id, params.storeUrl);
-              toast({
-                title: "Deleted coupon",
-                description: "The coupon has been deleted.",
-              });
-              setLoading(false);
-              router.refresh();
-              setClose();
-            }}
+            onClick={onConfirm}
           >
             Delete
           </AlertDialogAction>

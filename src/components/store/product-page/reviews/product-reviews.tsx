@@ -6,7 +6,7 @@ import {
   ReviewsOrderType,
   ReviewWithImageType,
 } from "@/lib/types";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import RatingCard from "../../cards/product-rating";
 import RatingStatisticsCard from "../../cards/rating-statistics";
 import ReviewCard from "../../cards/review";
@@ -65,17 +65,7 @@ const ProductReviews: FC<Props> = ({
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(4);
 
-  useEffect(() => {
-    if (filters.rating || filters.hasImages || sort) {
-      setPage(1);
-      handleGetReviews();
-    }
-    if (page) {
-      handleGetReviews();
-    }
-  }, [filters, sort, page]);
-
-  const handleGetReviews = async () => {
+  const handleGetReviews = useCallback(async () => {
     try {
       setFilterLoading(true);
       const res = await getProductFilteredReviews(
@@ -92,7 +82,17 @@ const ProductReviews: FC<Props> = ({
     } catch (error) {
       setLoading(false);
     }
-  };
+  }, [productId, filters, sort, page, pageSize]);
+
+  useEffect(() => {
+    if (filters.rating || filters.hasImages || sort) {
+      setPage(1);
+      handleGetReviews();
+    }
+    if (page) {
+      handleGetReviews();
+    }
+  }, [filters, sort, page, handleGetReviews]);
 
   return (
     <div className="pt-6" id="reviews">

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FiltersQueryType } from "@/lib/types";
@@ -20,18 +20,18 @@ export default function ColorFilter({
   const [total, setTotal] = useState<number>(10);
   const [take, setTake] = useState<number>(10);
 
-  useEffect(() => {
-    handleGetColors();
-  }, [category, subCategory, offer, take]);
-
-  const handleGetColors = async () => {
+  const handleGetColors = useCallback(async () => {
     const data = await getFilteredColors(
       { category, offer, subCategory, storeUrl },
       take
     );
     setColors(data.colors);
     setTotal(data.count);
-  };
+  }, [category, offer, subCategory, storeUrl, take]);
+
+  useEffect(() => {
+    handleGetColors();
+  }, [handleGetColors]);
   console.log("colors", colors);
   return (
     <div className="pt-5 pb-4">

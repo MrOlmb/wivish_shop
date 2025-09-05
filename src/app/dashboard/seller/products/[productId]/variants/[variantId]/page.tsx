@@ -1,6 +1,8 @@
 // Product details form
 import ProductDetails from "@/components/dashboard/forms/product-details";
 import { db } from "@/lib/db";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 // Queries
 import { getAllCategories } from "@/queries/category";
@@ -10,11 +12,28 @@ import { getProductVariant } from "@/queries/product";
 export default async function ProductVariantPage({
   params,
 }: {
-  params: { storeUrl: string; productId: string; variantId: string };
+  params: { productId: string; variantId: string };
 }) {
+  // Fetch the current user
+  const user = await currentUser();
+  if (!user) {
+    redirect("/");
+    return;
+  }
+
+  // Get the user's store
+  const store = await db.store.findFirst({
+    where: { userId: user.id },
+  });
+
+  if (!store) {
+    redirect("/dashboard/seller");
+    return;
+  }
+
   const categories = await getAllCategories();
   const offerTags = await getAllOfferTags();
-  const { productId, variantId, storeUrl } = params;
+  const { productId, variantId } = params;
   const productDetails = await getProductVariant(productId, variantId);
   if (!productDetails) return;
   const newDetails = {
@@ -31,7 +50,7 @@ export default async function ProductVariantPage({
       <ProductDetails
         categories={categories}
         offerTags={offerTags}
-        storeUrl={storeUrl}
+        storeId={store.id}
         data={newDetails}
         countries={countries}
       />

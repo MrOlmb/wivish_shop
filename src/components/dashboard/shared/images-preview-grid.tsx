@@ -51,7 +51,7 @@ const ImagesPreviewGrid: FC<ImagesPreviewGridProps> = ({
     if (imagesLength > 0) {
       fecthColors();
     }
-  }, [images]);
+  }, [images, imagesLength]);
 
   // If there are no images, display a placeholder image
   if (imagesLength === 0) {

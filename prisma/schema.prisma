@@ -683,7 +683,7 @@ model PaymentDetails {
   
   id String @id @default(uuid())
 
-  paymentInetntId String
+  paymentIntentId String
   paymentMethod String
   status String
   amount Float

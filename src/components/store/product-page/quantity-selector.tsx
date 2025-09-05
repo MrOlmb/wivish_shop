@@ -3,7 +3,7 @@ import useFromStore from "@/hooks/useFromStore";
 import { CartProductType } from "@/lib/types";
 import { Size } from "@prisma/client";
 import { Minus, Plus } from "lucide-react";
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useCallback, useState } from "react";
 
 interface QuantitySelectorProps {
   productId: string;
@@ -43,22 +43,32 @@ const QuantitySelector: FC<QuantitySelectorProps> = ({
         })()
       : stock; // Default to stock if no cart or sizeId
 
-  // useEffect hook to handle changes when sizeId updates
+  const handleCartProductToBeAddedChange = useCallback((property: keyof CartProductType, value: any) => {
+    handleChange(property, value);
+  }, [handleChange]);
+
+  const [localQuantity, setLocalQuantity] = useState(quantity);
+
+  const localHandleChange = useCallback((newQuantity: number) => {
+    setLocalQuantity(newQuantity);
+    handleCartProductToBeAddedChange("quantity", newQuantity);
+  }, [handleCartProductToBeAddedChange]);
+
   useEffect(() => {
-    handleChange("quantity", 1);
-  }, [sizeId]);
+    localHandleChange(localQuantity);
+  }, [localQuantity, localHandleChange]);
 
   // Function to handle increasing the quantity of the product
   const handleIncrease = () => {
-    if (quantity < maxQty) {
-      handleChange("quantity", quantity + 1);
+    if (localQuantity < maxQty) {
+      localHandleChange(localQuantity + 1);
     }
   };
 
   // Function to handle decreasing the quantity of the product
   const handleDecrease = () => {
-    if (quantity > 1) {
-      handleChange("quantity", quantity - 1);
+    if (localQuantity > 1) {
+      localHandleChange(localQuantity - 1);
     }
   };
 
@@ -77,7 +87,7 @@ const QuantitySelector: FC<QuantitySelectorProps> = ({
             type="number"
             className="w-full p-0 bg-transparent border-0 focus:outline-0 text-gray-800"
             min={1}
-            value={maxQty <= 0 ? 0 : quantity}
+            value={maxQty <= 0 ? 0 : localQuantity}
             max={maxQty}
             readOnly
           />
@@ -86,14 +96,14 @@ const QuantitySelector: FC<QuantitySelectorProps> = ({
           <button
             className="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-full border border-gray-200 bg-white shadow-sm focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
             onClick={handleDecrease}
-            disabled={quantity === 1}
+            disabled={localQuantity === 1}
           >
             <Minus className="w-3" />
           </button>
           <button
             className="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-full border border-gray-200 bg-white shadow-sm focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
             onClick={handleIncrease}
-            disabled={quantity === stock}
+            disabled={localQuantity === stock}
           >
             <Plus className="w-3" />
           </button>

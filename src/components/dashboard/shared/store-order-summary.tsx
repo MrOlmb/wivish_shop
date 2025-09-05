@@ -101,7 +101,7 @@ const StoreOrderSummary: FC<Props> = ({ group }) => {
                 Payment Reference
               </p>
               <h6 className="font-semibold text-lg leading-9">
-                {paymentDetails?.paymentInetntId || "-"}
+                {paymentDetails?.paymentIntentId || "-"}
               </h6>
             </div>
           </div>

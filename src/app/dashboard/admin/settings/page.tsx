@@ -43,7 +43,7 @@ export default async function AdminStoreSettingsPage() {
         <p className="text-gray-600 mt-2">Manage your store information, branding, and settings</p>
       </div>
       
-      <StoreDetails data={mainStore} />
+      <StoreDetails data={mainStore} storeId={mainStore.id} />
     </div>
   );
 }

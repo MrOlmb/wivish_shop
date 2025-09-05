@@ -101,36 +101,35 @@ export const upsertStore = async (store: Partial<Store>) => {
 // Function: getStoreDefaultShippingDetails
 // Description: Fetches the default shipping details for a store based on the store URL.
 // Parameters:
-//   - storeUrl: The URL of the store to fetch default shipping details for.
+//   - storeId: The ID of the store to fetch default shipping details for.
 // Returns: An object containing default shipping details, including shipping service, fees, delivery times, and return policy.
-export const getStoreDefaultShippingDetails = async (storeUrl: string) => {
+export const getStoreDefaultShippingDetails = async (storeId: string) => {
   try {
-    // Ensure the store URL is provided
-    if (!storeUrl) throw new Error("Store URL is required.");
+    // Get current user
+    const user = await currentUser();
 
-    // Fetch the store and its default shipping details
+    // Ensure user is authenticated
+    if (!user) throw new Error("Unauthenticated.");
+
+    // Verify seller permission
+    if (user.privateMetadata.role !== "SELLER")
+      throw new Error("Unauthorized Access: Seller Privileges Required for Entry.");
+
+    // Ensure storeId is provided
+    if (!storeId) throw new Error("Store ID is required.");
+
+    // Retrieve store using storeId and ensure it belongs to the current user
     const store = await db.store.findUnique({
-      where: {
-        url: storeUrl,
-      },
-      select: {
-        defaultShippingService: true,
-        defaultShippingFeePerItem: true,
-        defaultShippingFeeForAdditionalItem: true,
-        defaultShippingFeePerKg: true,
-        defaultShippingFeeFixed: true,
-        defaultDeliveryTimeMin: true,
-        defaultDeliveryTimeMax: true,
-        returnPolicy: true,
-      },
+      where: { id: storeId },
     });
 
-    // Throw an error if the store is not found
     if (!store) throw new Error("Store not found.");
+
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
 
     return store;
   } catch (error) {
-    // Log and re-throw any errors
     throw error;
   }
 };
@@ -138,12 +137,21 @@ export const getStoreDefaultShippingDetails = async (storeUrl: string) => {
 // Function: updateStoreDefaultShippingDetails
 // Description: Updates the default shipping details for a store based on the store URL.
 // Parameters:
-//   - storeUrl: The URL of the store to update.
+//   - storeId: The ID of the store to update.
 //   - details: An object containing the new shipping details (shipping service, fees, delivery times, and return policy).
 // Returns: The updated store object with the new default shipping details.
 export const updateStoreDefaultShippingDetails = async (
-  storeUrl: string,
-  details: StoreDefaultShippingType
+  storeId: string,
+  defaultShippingDetails: {
+    defaultShippingService: string;
+    defaultShippingFeePerItem: number;
+    defaultShippingFeeForAdditionalItem: number;
+    defaultShippingFeePerKg: number;
+    defaultShippingFeeFixed: number;
+    defaultDeliveryTimeMin: number;
+    defaultDeliveryTimeMax: number;
+    returnPolicy: string;
+  }
 ) => {
   try {
     // Get current user
@@ -154,42 +162,29 @@ export const updateStoreDefaultShippingDetails = async (
 
     // Verify seller permission
     if (user.privateMetadata.role !== "SELLER")
-      throw new Error(
-        "Unauthorized Access: Seller Privileges Required for Entry."
-      );
+      throw new Error("Unauthorized Access: Seller Privileges Required for Entry.");
 
-    // Ensure the store URL is provided
-    if (!storeUrl) throw new Error("Store URL is required.");
+    // Ensure storeId is provided
+    if (!storeId) throw new Error("Store ID is required.");
 
-    // Ensure at least one detail is provided for update
-    if (!details) {
-      throw new Error("No shipping details provided to update.");
-    }
-    // Make sure seller is updating their own store
-    const check_ownership = await db.store.findUnique({
-      where: {
-        url: storeUrl,
-        userId: user.id,
-      },
+    // Retrieve store using storeId and ensure it belongs to the current user
+    const store = await db.store.findUnique({
+      where: { id: storeId },
     });
 
-    if (!check_ownership)
-      throw new Error(
-        "Make sure you have the permissions to update this store"
-      );
+    if (!store) throw new Error("Store not found.");
 
-    // Find and update the store based on storeUrl
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
+
+    // Update the store with the new default shipping details
     const updatedStore = await db.store.update({
-      where: {
-        url: storeUrl,
-        userId: user.id,
-      },
-      data: details,
+      where: { id: storeId },
+      data: defaultShippingDetails,
     });
 
     return updatedStore;
   } catch (error) {
-    // Log and re-throw any errors
     throw error;
   }
 };
@@ -201,7 +196,7 @@ export const updateStoreDefaultShippingDetails = async (
  * Permission Level: Public
  * Returns: Array of objects where each object contains a country and its associated shippingRate, sorted by country name.
  */
-export const getStoreShippingRates = async (storeUrl: string) => {
+export const getStoreShippingRates = async (storeId: string) => {
   try {
     // Get current user
     const user = await currentUser();
@@ -211,61 +206,27 @@ export const getStoreShippingRates = async (storeUrl: string) => {
 
     // Verify seller permission
     if (user.privateMetadata.role !== "SELLER")
-      throw new Error(
-        "Unauthorized Access: Seller Privileges Required for Entry."
-      );
+      throw new Error("Unauthorized Access: Seller Privileges Required for Entry.");
 
-    // Ensure the store URL is provided
-    if (!storeUrl) throw new Error("Store URL is required.");
+    // Ensure storeId is provided
+    if (!storeId) throw new Error("Store ID is required.");
 
-    // Make sure seller is updating their own store
-    const check_ownership = await db.store.findUnique({
-      where: {
-        url: storeUrl,
-        userId: user.id,
-      },
-    });
-
-    if (!check_ownership)
-      throw new Error(
-        "Make sure you have the permissions to update this store"
-      );
-
-    // Get store details
+    // Retrieve store using storeId and ensure it belongs to the current user
     const store = await db.store.findUnique({
-      where: { url: storeUrl, userId: user.id },
+      where: { id: storeId },
     });
 
-    if (!store) throw new Error("Store could not be found.");
+    if (!store) throw new Error("Store not found.");
 
-    // Retrieve all countries
-    const countries = await db.country.findMany({
-      orderBy: {
-        name: "asc",
-      },
-    });
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
 
-    // Retrieve all shipping rates for the specified store
+    // Retrieve shipping rates for the store
     const shippingRates = await db.shippingRate.findMany({
-      where: {
-        storeId: store.id,
-      },
+      where: { storeId },
     });
 
-    // Create a map for quick lookup of shipping rates by country ID
-    const rateMap = new Map();
-    shippingRates.forEach((rate) => {
-      rateMap.set(rate.countryId, rate);
-    });
-
-    // Map countries to their shipping rates
-    const result = countries.map((country) => ({
-      countryId: country.id,
-      countryName: country.name,
-      shippingRate: rateMap.get(country.id) || null,
-    }));
-
-    return result;
+    return shippingRates;
   } catch (error) {
     throw error;
   }
@@ -275,11 +236,11 @@ export const getStoreShippingRates = async (storeUrl: string) => {
 // Description: Upserts a shipping rate for a specific country, updating if it exists or creating a new one if not.
 // Permission Level: Seller only
 // Parameters:
-//   - storeUrl: Url of the store you are trying to update.
+//   - storeId: Id of the store you are trying to update.
 //   - shippingRate: ShippingRate object containing the details of the shipping rate to be upserted.
 // Returns: Updated or newly created shipping rate details.
 export const upsertShippingRate = async (
-  storeUrl: string,
+  storeId: string,
   shippingRate: ShippingRate
 ) => {
   try {
@@ -298,8 +259,7 @@ export const upsertShippingRate = async (
     // Make sure seller is updating their own store
     const check_ownership = await db.store.findUnique({
       where: {
-        url: storeUrl,
-        userId: user.id,
+        id: storeId,
       },
     });
 
@@ -318,8 +278,7 @@ export const upsertShippingRate = async (
     // Get store id
     const store = await db.store.findUnique({
       where: {
-        url: storeUrl,
-        userId: user.id,
+        id: storeId,
       },
     });
     if (!store) throw new Error("Please provide a valid store URL.");
@@ -345,70 +304,56 @@ export const upsertShippingRate = async (
  * @description - Retrieves all orders for a specific store.
  *              - Returns order that include items, order details.
  * @access User
- * @param storeUrl - The url of the store whose order groups are being retrieved.
+ * @param storeId - The id of the store whose order groups are being retrieved.
  * @returns {Array} - Array of order groups, including items.
  */
-export const getStoreOrders = async (storeUrl: string) => {
+export const getStoreOrders = async (storeId: string) => {
   try {
-    // Retrieve current user
+    // Get current user
     const user = await currentUser();
 
-    // Check if user is authenticated
+    // Ensure user is authenticated
     if (!user) throw new Error("Unauthenticated.");
 
     // Verify seller permission
     if (user.privateMetadata.role !== "SELLER")
-      throw new Error(
-        "Unauthorized Access: Seller Privileges Required for Entry."
-      );
+      throw new Error("Unauthorized Access: Seller Privileges Required for Entry.");
 
-    // Get store id using url
+    // Ensure storeId is provided
+    if (!storeId) throw new Error("Store ID is required.");
+
+    // Retrieve store using storeId and ensure it belongs to the current user
     const store = await db.store.findUnique({
-      where: {
-        url: storeUrl,
-      },
+      where: { id: storeId },
     });
 
-    // Ensure store existence
     if (!store) throw new Error("Store not found.");
 
-    // Verify ownership
-    if (user.id !== store.userId) {
-      throw new Error("You don't have persmission to access this store.");
-    }
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
 
-    // Retrieve order groups for the specified store and user
-    const orders = await db.orderGroup.findMany({
-      where: {
-        storeId: store.id,
-      },
+    // Retrieve order groups for the store
+    const orderGroups = await db.orderGroup.findMany({
+      where: { storeId },
       include: {
-        items: true,
-        coupon: true,
         order: {
-          select: {
-            paymentStatus: true,
-
+          include: {
+            paymentDetails: true,
             shippingAddress: {
               include: {
                 country: true,
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
+                user: true,
               },
             },
-            paymentDetails: true,
           },
         },
+        items: true,
+        coupon: true,
       },
-      orderBy: {
-        updatedAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
-    return orders;
+    return orderGroups;
   } catch (error) {
     throw error;
   }
@@ -597,13 +542,13 @@ export const deleteStore = async (storeId: string) => {
   }
 };
 
-export const getStorePageDetails = async (storeUrl: string) => {
+export const getStorePageDetails = async (storeId: string) => {
   const user = await currentUser();
 
   // Fetch the store details from the database
   const store = await db.store.findUnique({
     where: {
-      url: storeUrl,
+      id: storeId,
       status: "ACTIVE",
     },
     select: {
@@ -627,7 +572,7 @@ export const getStorePageDetails = async (storeUrl: string) => {
   }
   // Handle case where the store is not found
   if (!store) {
-    throw new Error(`Store with URL "${storeUrl}" not found.`);
+    throw new Error(`Store with URL "${storeId}" not found.`);
   }
   return { ...store, isUserFollowingStore };
 };

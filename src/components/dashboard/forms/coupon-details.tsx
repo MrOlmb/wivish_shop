@@ -76,7 +76,7 @@ const CouponDetails: FC<CouponDetailsProps> = ({ data, storeId }) => {
 
       console.log("Sending to upsertCoupon:", couponData);
 
-      const response = await upsertCoupon(couponData as Coupon);
+      const response = await upsertCoupon(couponData as Coupon, storeId);
 
       toast({
         title: data?.id ? "Coupon updated successfully" : "Coupon created successfully",

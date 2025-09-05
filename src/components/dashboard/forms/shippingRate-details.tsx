@@ -42,15 +42,18 @@ import { useRouter } from "next/navigation";
 import { CountryWithShippingRatesType } from "@/lib/types";
 import { NumberInput } from "@tremor/react";
 import { Textarea } from "@/components/ui/textarea";
+import { ShippingRate, Country } from "@prisma/client";
 
 interface ShippingRateDetailsProps {
-  data?: CountryWithShippingRatesType;
-  storeUrl: string;
+  data?: ShippingRate;
+  storeId: string;
+  countries: Country[];
 }
 
 const ShippingRateDetails: FC<ShippingRateDetailsProps> = ({
   data,
-  storeUrl,
+  storeId,
+  countries,
 }) => {
   // Initializing necessary hooks
   const { toast } = useToast(); // Hook for displaying toast messages
@@ -63,29 +66,15 @@ const ShippingRateDetails: FC<ShippingRateDetailsProps> = ({
     defaultValues: {
       // Setting default form values from data (if available)
       countryId: data?.countryId,
-      countryName: data?.countryName,
-      shippingService: data?.shippingRate
-        ? data?.shippingRate.shippingService
-        : "",
-      shippingFeePerItem: data?.shippingRate
-        ? data?.shippingRate.shippingFeePerItem
-        : 0,
-      shippingFeeForAdditionalItem: data?.shippingRate
-        ? data?.shippingRate.shippingFeeForAdditionalItem
-        : 0,
-      shippingFeePerKg: data?.shippingRate
-        ? data?.shippingRate.shippingFeePerKg
-        : 0,
-      shippingFeeFixed: data?.shippingRate
-        ? data?.shippingRate.shippingFeeFixed
-        : 0,
-      deliveryTimeMin: data?.shippingRate
-        ? data?.shippingRate.deliveryTimeMin
-        : 1,
-      deliveryTimeMax: data?.shippingRate
-        ? data?.shippingRate.deliveryTimeMax
-        : 1,
-      returnPolicy: data?.shippingRate ? data.shippingRate.returnPolicy : "",
+      countryName: "",
+      shippingService: data?.shippingService || "",
+      shippingFeePerItem: data?.shippingFeePerItem || 0,
+      shippingFeeForAdditionalItem: data?.shippingFeeForAdditionalItem || 0,
+      shippingFeePerKg: data?.shippingFeePerKg || 0,
+      shippingFeeFixed: data?.shippingFeeFixed || 0,
+      deliveryTimeMin: data?.deliveryTimeMin || 1,
+      deliveryTimeMax: data?.deliveryTimeMax || 1,
+      returnPolicy: data?.returnPolicy || "",
     },
   });
 
@@ -105,8 +94,8 @@ const ShippingRateDetails: FC<ShippingRateDetailsProps> = ({
   ) => {
     try {
       // Upserting category data
-      const response = await upsertShippingRate(storeUrl, {
-        id: data?.shippingRate ? data.shippingRate.id : v4(),
+      const response = await upsertShippingRate(storeId, {
+        id: data?.id || v4(),
         countryId: data?.countryId ? data.countryId : "",
         shippingService: values.shippingService,
         shippingFeePerItem: values.shippingFeePerItem,
@@ -146,7 +135,7 @@ const ShippingRateDetails: FC<ShippingRateDetailsProps> = ({
         <CardHeader>
           <CardTitle>Shipping Rate</CardTitle>
           <CardDescription>
-            Update Shipping rate information for {data?.countryName}.
+            Update Shipping rate information.
           </CardDescription>
         </CardHeader>
         <CardContent>

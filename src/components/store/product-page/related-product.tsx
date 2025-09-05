@@ -34,7 +34,7 @@ export default function RelatedProducts({
       }
     };
     getRelatedProductsHandler();
-  }, []);
+  }, [categoryId, subCategoryId, productId]);
   return (
     <div className="pt-6" id="reviews">
       {/* Title */}

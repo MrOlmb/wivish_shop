@@ -48,6 +48,7 @@ import { v4 } from "uuid";
 
 interface StoreDetailsProps {
   data?: Store;
+  storeId: string;
 }
 
 const StoreDetails: FC<StoreDetailsProps> = ({ data }) => {

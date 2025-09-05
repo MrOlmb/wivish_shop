@@ -39,7 +39,7 @@ const StoreCard: FC<Props> = ({ store, checkForFollowing }) => {
       } catch (error) {}
     };
     getDetails();
-  }, []);
+  }, [id]);
   const handleStoreFollow = async () => {
     if (!user.isSignedIn) router.push("/sign-in");
     try {

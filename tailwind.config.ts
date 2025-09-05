@@ -95,6 +95,10 @@ const config = {
       maxWidth: {
         container: "1200px",
       },
+      transitionDuration: {
+        20: "20ms",
+        30: "30ms",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

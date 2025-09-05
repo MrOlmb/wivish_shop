@@ -60,14 +60,14 @@ export const columns: ColumnDef<StoreProductType>[] = [
               <div key={variant.id} className="flex flex-col gap-y-2 group">
                 <div className="relative cursor-pointer p-2">
                   <Image
-                    src={variant.images[0].url}
+                    src={variant.variantImage}
                     alt={`${variant.variantName} image`}
                     width={1000}
                     height={1000}
                     className="max-w-72 h-72 rounded-md object-cover shadow-sm"
                   />
                   <Link
-                    href={`/dashboard/seller/stores/${row.original.store.url}/products/${row.original.id}/variants/${variant.id}`}
+                    href={`/dashboard/seller/products/${row.original.id}/variants/${variant.id}`}
                   >
                     <div className="w-[304px] h-full absolute top-0 left-0 bottom-0 right-0 z-0 rounded-sm bg-black/50 transition-all duration-150 hidden group-hover:block">
                       <FilePenLine className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white" />
@@ -147,7 +147,7 @@ export const columns: ColumnDef<StoreProductType>[] = [
     cell: ({ row }) => {
       return (
         <Link
-          href={`/dashboard/seller/stores/${row.original.store.url}/products/${row.original.id}/variants/new`}
+          href={`/dashboard/seller/products/${row.original.id}/variants/new`}
         >
           <CopyPlus className="hover:text-blue-200" />
         </Link>

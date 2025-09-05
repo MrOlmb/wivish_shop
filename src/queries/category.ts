@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 
 // Prisma model
 import { Category } from "@prisma/client";
+import { Store } from "@prisma/client";
 
 // Function: upsertCategory
 // Description: Upserts a category into the database, updating if it exists or creating a new one if not.
@@ -78,42 +79,36 @@ export const upsertCategory = async (category: Category) => {
 // Description: Retrieves all categories from the database.
 // Permission Level: Public
 // Returns: Array of categories sorted by updatedAt date in descending order.
-export const getAllCategories = async (storeUrl?: string) => {
-  let storeId: string | undefined;
+export const getAllCategories = async (storeId?: string) => {
+  try {
+    let store: Store | null = null;
 
-  if (storeUrl) {
-    // Retrieve the storeId based on the storeUrl
-    const store = await db.store.findUnique({
-      where: { url: storeUrl },
-    });
-
-    // If no store is found, return an empty array or handle as needed
-    if (!store) {
-      return [];
+    if (storeId) {
+      // Retrieve the store based on the storeId
+      store = await db.store.findUnique({
+        where: { id: storeId },
+      });
     }
 
-    storeId = store.id;
-  }
+    const categories = await db.category.findMany({
+      where: {
+        products: store
+          ? {
+              some: {
+                storeId: store.id,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        subCategories: true,
+      },
+    });
 
-  // Retrieve all categories from the database
-  const categories = await db.category.findMany({
-    where: storeId
-      ? {
-          products: {
-            some: {
-              storeId: storeId,
-            },
-          },
-        }
-      : {},
-    include: {
-      subCategories: true,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
-  return categories;
+    return categories;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Function: getAllCategoriesForCategory

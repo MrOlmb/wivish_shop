@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FiltersQueryType } from "@/lib/types";
@@ -19,18 +19,18 @@ export default function SizeFilter({
   const [total, setTotal] = useState<number>(10);
   const [take, setTake] = useState<number>(10);
 
-  useEffect(() => {
-    handleGetSizes();
-  }, [category, subCategory, offer, take]);
-
-  const handleGetSizes = async () => {
+  const handleGetSizes = useCallback(async () => {
     const sizes = await getFilteredSizes(
       { category, offer, subCategory, storeUrl },
       take
     );
     setSizes(sizes.sizes);
     setTotal(sizes.count);
-  };
+  }, [category, offer, subCategory, storeUrl, take]);
+
+  useEffect(() => {
+    handleGetSizes();
+  }, [handleGetSizes]);
   return (
     <div className="pt-5 pb-4">
       {/* Header */}

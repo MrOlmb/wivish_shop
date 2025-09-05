@@ -3,53 +3,51 @@
 import { db } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { OfferTag } from "@prisma/client";
+import { Store } from "@prisma/client";
 
 // Function: getAllOfferTags
 // Description: Retrieves all offer tags from the database.
 // Permission Level: Public
 // Returns: Array of offer tags sorted by updatedAt date in ascending order.
-export const getAllOfferTags = async (storeUrl?: string) => {
-  let storeId: string | undefined;
+export const getAllOfferTags = async (storeId?: string) => {
+  try {
+    let store: Store | null = null;
 
-  if (storeUrl) {
-    // Retrieve the storeId based on the storeUrl
-    const store = await db.store.findUnique({
-      where: { url: storeUrl },
-    });
-
-    // If no store is found, return an empty array or handle as needed
-    if (!store) {
-      return [];
+    if (storeId) {
+      // Retrieve the store based on the storeId
+      store = await db.store.findUnique({
+        where: { id: storeId },
+      });
     }
 
-    storeId = store.id;
-  }
-
-  // Retrieve all offer tags from the database
-  const offerTgas = await db.offerTag.findMany({
-    where: storeId
-      ? {
-          products: {
-            some: {
-              storeId: storeId,
-            },
+    const offerTags = await db.offerTag.findMany({
+      where: {
+        products: store
+          ? {
+              some: {
+                storeId: store.id,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        products: {
+          select: {
+            id: true,
           },
-        }
-      : {},
-    include: {
-      products: {
-        select: {
-          id: true,
         },
       },
-    },
-    orderBy: {
-      products: {
-        _count: "desc", // Order by the count of associated products in descending order
+      orderBy: {
+        products: {
+          _count: "desc", // Order by the count of associated products in descending order
+        },
       },
-    },
-  });
-  return offerTgas;
+    });
+
+    return offerTags;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Function: upsertOfferTag

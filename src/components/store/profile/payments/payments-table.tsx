@@ -104,7 +104,7 @@ export default function PaymentsTable({
                             </div>
                           </div>
                         </td>
-                        <td>{payment.paymentInetntId}</td>
+                        <td>{payment.paymentIntentId}</td>
                         <td>{payment.paymentMethod}</td>
                         <td>${amount.toFixed(2)}</td>
                         <td>{payment.status}</td>

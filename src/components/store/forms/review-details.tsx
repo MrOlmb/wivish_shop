@@ -107,20 +107,15 @@ export default function ReviewDetails({
   }));
 
   useEffect(() => {
-    form.setValue("size", "");
-    const name = form.getValues().variantName;
-    const variant = variantsInfo.find((v) => v.variantName === name);
-    if (variant) {
-      const sizes_data = variant.sizes.map((s) => ({
-        name: s.size,
-        value: s.size,
-      }));
-      setActiveVariant(variant);
-      if (sizes) setSizes(sizes_data);
-      form.setValue("color", variant.colors.map((c) => c.name).join(","));
-      form.setValue("variantImage", variant.variantImage);
-    }
-  }, [form.getValues().variantName]);
+    const firstVariant = variantsInfo[0];
+    const firstSize = sizes[0];
+
+    form.setValue("variantName", firstVariant.variantName);
+    form.setValue("size", firstSize.name);
+    form.setValue("quantity", "1");
+    form.setValue("color", firstVariant.colors[0]?.name || "");
+    form.setValue("variantImage", firstVariant.variantImage);
+  }, [variantsInfo, sizes, form]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     form.setValue("quantity", e.target.value);

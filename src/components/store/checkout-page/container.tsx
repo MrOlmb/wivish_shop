@@ -45,7 +45,7 @@ const CheckoutContainer: FC<Props> = ({
     if (cartItems.length > 0) {
       hydrateCheckoutCart();
     }
-  }, [activeCountry]);
+  }, [activeCountry, cartItems]);
   return (
     <div className="w-full flex flex-col gap-y-2 lg:flex-row">
       <div className="space-y-2 lg:flex-1">

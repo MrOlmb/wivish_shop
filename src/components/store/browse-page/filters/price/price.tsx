@@ -1,5 +1,5 @@
 "use client";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useCallback } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Input from "@/components/store/ui/input";
 
@@ -16,22 +16,12 @@ const PriceFilter: FC = () => {
   );
 
   // Update URL params
-  const updateUrlParams = () => {
+  const updateUrlParams = useCallback((newMin: number, newMax: number) => {
     const params = new URLSearchParams(searchParams);
-    if (minPrice) {
-      params.set("minPrice", String(minPrice));
-    } else {
-      params.delete("minPrice");
-    }
-
-    if (maxPrice) {
-      params.set("maxPrice", String(maxPrice));
-    } else {
-      params.delete("maxPrice");
-    }
-
+    if (newMin) params.set("minPrice", String(newMin)); else params.delete("minPrice");
+    if (newMax) params.set("maxPrice", String(newMax)); else params.delete("maxPrice");
     replace(`${pathname}?${params.toString()}`);
-  };
+  }, [searchParams, pathname, replace]);
 
   // Handle minPrice change
   const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,23 +35,12 @@ const PriceFilter: FC = () => {
 
   // Use effect to handle debounce of the URL update
   useEffect(() => {
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
-
     const timeout = setTimeout(() => {
-      updateUrlParams();
-    }, 500); // Debouncing for 500ms delay
+      updateUrlParams(Number(minPrice) || 0, Number(maxPrice) || 0);
+    }, 500);
 
-    setDebounceTimeout(timeout);
-
-    // Cleanup the timeout when the component unmounts or changes
-    return () => {
-      if (debounceTimeout) {
-        clearTimeout(debounceTimeout);
-      }
-    };
-  }, [minPrice, maxPrice]);
+    return () => clearTimeout(timeout);
+  }, [minPrice, maxPrice, updateUrlParams]);
 
   return (
     <div className="pt-5 pb-4">

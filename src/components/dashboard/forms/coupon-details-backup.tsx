@@ -224,6 +224,7 @@ const CouponDetails: FC<CouponDetailsProps> = ({ data, storeUrl }) => {
                   : data?.id
                   ? "Enregistrer les informations du coupon"
                   : "Créer le coupon"
+                }
               </Button>
             </form>
           </Form>

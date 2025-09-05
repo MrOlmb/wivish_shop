@@ -2,7 +2,7 @@
 import { useCartStore } from "@/cart-store/useCartStore";
 import useFromStore from "@/hooks/useFromStore";
 import { CartProductType, Country } from "@/lib/types";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import CartHeader from "./car-header";
 import CartProduct from "../cards/cart-product";
 import CartSummary from "./summary";
@@ -17,8 +17,10 @@ export default function CartContainer({
 }: {
   userCountry: Country;
 }) {
-  const cartItems = useFromStore(useCartStore, (state) => state.cart) || [];
+  const cart = useFromStore(useCartStore, (state) => state.cart);
   const setCart = useCartStore((state) => state.setCart);
+
+  const cartItems = useMemo(() => cart || [], [cart]);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [isCartLoaded, setIsCartLoaded] = useState<boolean>(false);
@@ -33,6 +35,7 @@ export default function CartContainer({
       setIsCartLoaded(true); // Flag indicating cartItems has finished loading
     }
   }, [cartItems]);
+
 
   useEffect(() => {
     const loadAndSyncCart = async () => {
@@ -52,7 +55,7 @@ export default function CartContainer({
     } else {
       hasMounted.current = true; // Set the ref to true after the first render
     }
-  }, [userCountry]);
+  }, [userCountry, cartItems, setCart]);
 
   return (
     <div>

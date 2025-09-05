@@ -11,7 +11,8 @@ export default function Newsletter() {
               <div className="scale-125 mr-2">
                 <SendIcon />
               </div>
-              <span className="md:text-xl">S'abonner à la newsletter</span>
+
+              <span className="md:text-xl">S&apos;abonner à la newsletter</span>
               <span className="ml-10">
                 ...et recevez un coupon de 10$ pour votre premier achat
               </span>
@@ -25,7 +26,7 @@ export default function Newsletter() {
               className="w-full h-10 pl-6 bg-white text-black rounded-l-full outline-none"
             />
             <span className="h-10 w-24 text-sm grid place-content-center rounded-r-full bg-slate-600 text-white cursor-pointer">
-              S'abonner
+              S&apos;abonner
             </span>
           </div>
         </div>

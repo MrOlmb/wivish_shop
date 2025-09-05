@@ -1,7 +1,7 @@
 "use client";
 
 // React, Next.js
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 // Form handling utilities
@@ -14,7 +14,7 @@ import { StoreShippingFormSchema } from "@/lib/schemas";
 
 // UI Components
 import { AlertDialog } from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -29,7 +29,7 @@ import { NumberInput } from "@tremor/react";
 import { Textarea } from "@/components/ui/textarea";
 
 // Queries
-import { updateStoreDefaultShippingDetails } from "@/queries/store";
+import { updateStoreDefaultShippingDetails, getStoreDefaultShippingDetails } from "@/queries/store";
 
 // Utils
 import { v4 } from "uuid";
@@ -39,80 +39,67 @@ import { useToast } from "@/components/ui/use-toast";
 import { StoreDefaultShippingType } from "@/lib/types";
 
 interface StoreDefaultShippingDetailsProps {
-  data?: StoreDefaultShippingType;
-  storeUrl: string;
+  storeId: string;
 }
 
-const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
-  data,
-  storeUrl,
-}) => {
-  // Initializing necessary hooks
-  const { toast } = useToast(); // Hook for displaying toast messages
-  const router = useRouter(); // Hook for routing
+const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({ storeId }) => {
+  const { toast } = useToast();
+  const router = useRouter();
 
-  // Form hook for managing form state and validation
+  const [loading, setLoading] = useState(false);
+
   const form = useForm<z.infer<typeof StoreShippingFormSchema>>({
-    mode: "onChange", // Form validation mode
-    resolver: zodResolver(StoreShippingFormSchema), // Resolver for form validation
+    mode: "onChange",
+    resolver: zodResolver(StoreShippingFormSchema),
     defaultValues: {
-      // Setting default form values from data (if available)
-      defaultShippingService: data?.defaultShippingService || "",
-      defaultShippingFeePerItem: data?.defaultShippingFeePerItem,
-      defaultShippingFeeForAdditionalItem:
-        data?.defaultShippingFeeForAdditionalItem,
-      defaultShippingFeePerKg: data?.defaultShippingFeePerKg,
-      defaultShippingFeeFixed: data?.defaultShippingFeeFixed,
-      defaultDeliveryTimeMin: data?.defaultDeliveryTimeMin,
-      defaultDeliveryTimeMax: data?.defaultDeliveryTimeMax,
-      returnPolicy: data?.returnPolicy,
+      defaultShippingService: "",
+      defaultShippingFeePerItem: 0,
+      defaultShippingFeeForAdditionalItem: 0,
+      defaultShippingFeePerKg: 0,
+      defaultShippingFeeFixed: 0,
+      defaultDeliveryTimeMin: 0,
+      defaultDeliveryTimeMax: 0,
+      returnPolicy: "",
     },
   });
 
-  // Loading status based on form submission
-  const isLoading = form.formState.isSubmitting;
-
-  // Reset form values when data changes
   useEffect(() => {
-    if (data) {
-      form.reset(data);
-    }
-  }, [data, form]);
-
-  // Submit handler for form submission
-  const handleSubmit = async (
-    values: z.infer<typeof StoreShippingFormSchema>
-  ) => {
-    try {
-      // Upserting category data
-      const response = await updateStoreDefaultShippingDetails(storeUrl, {
-        defaultShippingService: values.defaultShippingService,
-        defaultShippingFeePerItem: values.defaultShippingFeePerItem,
-        defaultShippingFeeForAdditionalItem:
-          values.defaultShippingFeeForAdditionalItem,
-        defaultShippingFeePerKg: values.defaultShippingFeePerKg,
-        defaultShippingFeeFixed: values.defaultShippingFeeFixed,
-        defaultDeliveryTimeMin: values.defaultDeliveryTimeMin,
-        defaultDeliveryTimeMax: values.defaultDeliveryTimeMax,
-        returnPolicy: values.returnPolicy,
-      });
-
-      if (response.id) {
-        // Displaying success message
+    const fetchStoreDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await getStoreDefaultShippingDetails(storeId);
+        form.reset(response);
+      } catch (error: any) {
         toast({
-          title: "Store Default shipping details has been updated.",
+          variant: "destructive",
+          title: "Error",
+          description: error.toString(),
         });
-
-        //Refresh data
-        router.refresh();
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchStoreDetails();
+  }, [form, storeId, toast]);
+
+  const handleSubmit = async (values: z.infer<typeof StoreShippingFormSchema>) => {
+    try {
+      setLoading(true);
+      const response = await updateStoreDefaultShippingDetails(storeId, values);
+      toast({
+        title: "Success",
+        description: "Default shipping details updated successfully.",
+      });
+      router.refresh();
     } catch (error: any) {
-      // Handling form submission errors
       toast({
         variant: "destructive",
-        title: "Oops!",
+        title: "Error",
         description: error.toString(),
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,16 +107,16 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
     <AlertDialog>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Store Default Shipping details</CardTitle>
+          <CardTitle>Default Shipping Details</CardTitle>
+          <CardDescription>
+            Update your store&apos;s default shipping details.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <FormField
-                disabled={isLoading}
+                disabled={loading}
                 control={form.control}
                 name="defaultShippingService"
                 render={({ field }) => (
@@ -145,7 +132,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
 
               <div className="flex flex-wrap gap-4">
                 <FormField
-                  disabled={isLoading}
+                  disabled={loading}
                   control={form.control}
                   name="defaultShippingFeePerItem"
                   render={({ field }) => (
@@ -165,7 +152,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
                   )}
                 />
                 <FormField
-                  disabled={isLoading}
+                  disabled={loading}
                   control={form.control}
                   name="defaultShippingFeeForAdditionalItem"
                   render={({ field }) => (
@@ -187,7 +174,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
               </div>
               <div className="flex flex-wrap gap-4">
                 <FormField
-                  disabled={isLoading}
+                  disabled={loading}
                   control={form.control}
                   name="defaultShippingFeePerKg"
                   render={({ field }) => (
@@ -207,7 +194,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
                   )}
                 />
                 <FormField
-                  disabled={isLoading}
+                  disabled={loading}
                   control={form.control}
                   name="defaultShippingFeeFixed"
                   render={({ field }) => (
@@ -229,7 +216,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
               </div>
               <div className="flex flex-wrap gap-4">
                 <FormField
-                  disabled={isLoading}
+                  disabled={loading}
                   control={form.control}
                   name="defaultDeliveryTimeMin"
                   render={({ field }) => (
@@ -248,7 +235,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
                   )}
                 />
                 <FormField
-                  disabled={isLoading}
+                  disabled={loading}
                   control={form.control}
                   name="defaultDeliveryTimeMax"
                   render={({ field }) => (
@@ -269,7 +256,7 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
                 />
               </div>
               <FormField
-                disabled={isLoading}
+                disabled={loading}
                 control={form.control}
                 name="returnPolicy"
                 render={({ field }) => (
@@ -286,8 +273,8 @@ const StoreDefaultShippingDetails: FC<StoreDefaultShippingDetailsProps> = ({
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "loading..." : "Save changes"}
+              <Button type="submit" disabled={loading}>
+                {loading ? "Updating..." : "Update Default Shipping Details"}
               </Button>
             </form>
           </Form>

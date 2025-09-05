@@ -1,10 +1,11 @@
 "use client";
 import { ProductType } from "@/lib/types";
 import { getProducts } from "@/queries/product";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import ProductList from "../shared/product-list";
 import ProductPageStoreProductsSkeletonLoader from "../skeletons/product-page/store-products";
 import { ChevronRight } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 interface Props {
   storeUrl: string;
@@ -15,21 +16,22 @@ interface Props {
 const StoreProducts: FC<Props> = ({ storeUrl, count, storeName }) => {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    getStoreProducts();
-  }, []);
 
-  const getStoreProducts = async () => {
+  const getStoreProducts = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-
       const res = await getProducts({ store: storeUrl }, "", 1, count);
       setProducts(res.products);
-      setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
+      toast({ variant: "destructive", description: error.toString() });
+    } finally {
       setLoading(false);
     }
-  };
+  }, [storeUrl, count]);
+
+  useEffect(() => {
+    getStoreProducts();
+  }, [getStoreProducts]);
   return (
     <div className="pt-6" id="reviews">
       {/* Title */}

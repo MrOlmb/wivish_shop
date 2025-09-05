@@ -26,10 +26,7 @@ export default async function SellerCouponsPage() {
   }
 
   // Get all store coupons using store ID
-  const coupons = await db.coupon.findMany({
-    where: { storeId: store.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const coupons = await getStoreCoupons(store.id);
 
   return (
     <div>

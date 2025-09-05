@@ -1,7 +1,7 @@
 import { CartProductType } from "@/lib/types";
 import { Size } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Dispatch, FC, SetStateAction, useEffect } from "react";
+import { Dispatch, FC, SetStateAction, useEffect, useCallback } from "react";
 
 interface Props {
   sizes: Size[];
@@ -22,24 +22,19 @@ const SizeSelector: FC<Props> = ({
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams);
 
+  const handleCartProductToBeAddedChange = useCallback((property: keyof CartProductType, value: any) => {
+    handleChange(property, value);
+  }, [handleChange]);
+
   useEffect(() => {
-    if (sizeId) {
-      const search_size = sizes.find((s) => s.id === sizeId);
-      if (search_size) {
-        handleCartProductToBeAddedChange(search_size);
-      }
-    } else {
+    if (sizes.length > 0) {
+      handleCartProductToBeAddedChange("size", sizes[0].size);
     }
-  }, [sizeId]);
+  }, [sizes, handleCartProductToBeAddedChange]);
 
   const handleSelectSize = (size: Size) => {
     setSizeId(size.id);
-    handleCartProductToBeAddedChange(size);
-  };
-
-  const handleCartProductToBeAddedChange = (size: Size) => {
-    handleChange("sizeId", size.id);
-    handleChange("size", size.size);
+    handleCartProductToBeAddedChange("size", size.size);
   };
 
   return (

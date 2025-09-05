@@ -20,6 +20,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useCallback,
 } from "react";
 import toast from "react-hot-toast";
 
@@ -76,22 +77,24 @@ const CartProduct: FC<Props> = ({
   });
 
   // Function to calculate shipping fee
-  const calculateShipping = (newQty?: number) => {
+  const calculateShipping = useCallback((newQty?: number) => {
     let initialFee = 0;
     let extraFee = 0;
     let totalFee = 0;
 
-    const quantityToUse = newQty !== undefined ? newQty : quantity; // Use newQty if passed, else fallback to current quantity
+    const quantityToUse = newQty !== undefined ? newQty : quantity;
 
     if (shippingMethod === "ITEM") {
       initialFee = shippingFee;
-      extraFee = quantityToUse > 1 ? extraShippingFee * (quantityToUse - 1) : 0;
+      extraFee = extraShippingFee * (quantityToUse - 1);
       totalFee = initialFee + extraFee;
     } else if (shippingMethod === "WEIGHT") {
       totalFee = shippingFee * weight * quantityToUse;
     } else if (shippingMethod === "FIXED") {
       totalFee = shippingFee;
     }
+
+    if (totalFee < 0) totalFee = 0;
 
     // Subtract the previous shipping total for this product before updating
     if (stock > 0) {
@@ -109,7 +112,7 @@ const CartProduct: FC<Props> = ({
       weight,
       shippingService,
     });
-  };
+  }, [shippingFee, extraShippingFee, weight, shippingMethod, shippingInfo.totalFee, stock]);
 
   // Recalculate shipping fees whenever quantity, country or fees changes
   useEffect(() => {
@@ -128,7 +131,7 @@ const CartProduct: FC<Props> = ({
     if (!shippingInfo.totalFee) {
       calculateShipping();
     }
-  }, [quantity, shippingFee, userCountry, shippingInfo.totalFee, stock]);
+  }, [quantity, shippingFee, userCountry, shippingInfo.totalFee, stock, calculateShipping]);
 
   const selected = selectedItems.find(
     (p) => unique_id === `${p.productId}-${p.variantId}-${p.sizeId}`

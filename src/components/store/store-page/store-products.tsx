@@ -36,7 +36,7 @@ export default function StoreProducts({
       setLoading(false);
     };
     getFilteredProducts();
-  }, [searchParams]);
+  }, [category, offer, search, size, subCategory, store, sort]);
   return (
     <>
       {loading ? (

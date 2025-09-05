@@ -35,55 +35,88 @@ import { setMaxListeners } from "events";
 // Access Level: Seller Only
 // Parameters:
 //   - product: ProductWithVariant object containing details of the product and its variant.
-//   - storeUrl: The URL of the store to which the product belongs.
+//   - storeId: The ID of the store to which the product belongs.
 // Returns: Newly created or updated product with variant details.
 export const upsertProduct = async (
   product: ProductWithVariantType,
-  storeUrl: string
+  storeId: string
 ) => {
   try {
-    // Retrieve current user
+    // Get current user
     const user = await currentUser();
 
-    // Check if user is authenticated
+    // Ensure user is authenticated
     if (!user) throw new Error("Unauthenticated.");
 
-    // Ensure user has seller privileges
+    // Verify seller permission
     if (user.privateMetadata.role !== "SELLER")
       throw new Error(
         "Unauthorized Access: Seller Privileges Required for Entry."
       );
 
-    // Ensure product data is provided
+    // Ensure product data and storeId are provided
     if (!product) throw new Error("Please provide product data.");
+    if (!storeId) throw new Error("Store ID is required.");
 
-    // Find the store by URL
+    // Retrieve store using storeId and ensure it belongs to the current user
     const store = await db.store.findUnique({
-      where: { url: storeUrl, userId: user.id },
+      where: { id: storeId },
     });
+
     if (!store) throw new Error("Store not found.");
 
-    // Check if the product already exists
-    const existingProduct = await db.product.findUnique({
-      where: { id: product.productId },
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
+
+    // Destructure nested relations from the main product data
+    const {
+      productId,
+      variantId,
+      images,
+      colors,
+      sizes,
+      product_specs,
+      variant_specs,
+      questions,
+      freeShippingCountriesIds,
+      ...productData
+    } = product;
+
+    // Generate unique slug for the product
+    const productSlug = await generateUniqueSlug(
+      slugify(productData.name, {
+        replacement: "-",
+        lower: true,
+        trim: true,
+      }),
+      "product"
+    );
+
+    // Upsert product into the database
+    const productDetails = await db.product.upsert({
+      where: {
+        id: productId,
+      },
+      update: { 
+        ...productData, 
+        slug: productSlug,
+        storeId: store.id,
+        questions: {
+          deleteMany: {},
+          create: questions.map(q => ({ question: q.question, answer: q.answer })),
+        },
+      },
+      create: { 
+        ...productData, 
+        slug: productSlug,
+        storeId: store.id,
+        questions: {
+          create: questions.map(q => ({ question: q.question, answer: q.answer })),
+        },
+      },
     });
 
-    // Check if the variant already exists
-    const existingVariant = await db.productVariant.findUnique({
-      where: { id: product.variantId },
-    });
-
-    if (existingProduct) {
-      if (existingVariant) {
-        // Update existing variant and product
-      } else {
-        // Create new variant
-        await handleCreateVariant(product);
-      }
-    } else {
-      // Create new product and variant
-      await handleProductCreate(product, store.id);
-    }
+    return productDetails;
   } catch (error) {
     throw error;
   }
@@ -361,39 +394,56 @@ export const getProductMainInfo = async (productId: string) => {
 // Description: Retrieves all products from a specific store based on the store URL.
 // Access Level: Public
 // Parameters:
-//   - storeUrl: The URL of the store whose products are to be retrieved.
+//   - storeId: The ID of the store whose products are to be retrieved.
 // Returns: Array of products from the specified store, including category, subcategory, and variant details.
-export const getAllStoreProducts = async (storeUrl: string) => {
-  // Retrieve store details from the database using the store URL
-  const store = await db.store.findUnique({ where: { url: storeUrl } });
-  if (!store) throw new Error("Please provide a valid store URL.");
+export const getAllStoreProducts = async (storeId: string) => {
+  try {
+    // Get current user
+    const user = await currentUser();
 
-  // Retrieve all products associated with the store
-  const products = await db.product.findMany({
-    where: {
-      storeId: store.id,
-    },
-    include: {
-      category: true,
-      subCategory: true,
-      offerTag: true,
-      variants: {
-        include: {
-          images: { orderBy: { order: "asc" } },
-          colors: true,
-          sizes: true,
+    // Ensure user is authenticated
+    if (!user) throw new Error("Unauthenticated.");
+
+    // Verify seller permission
+    if (user.privateMetadata.role !== "SELLER")
+      throw new Error(
+        "Unauthorized Access: Seller Privileges Required for Entry."
+      );
+
+    // Ensure storeId is provided
+    if (!storeId) throw new Error("Store ID is required.");
+
+    // Retrieve store using storeId and ensure it belongs to the current user
+    const store = await db.store.findUnique({
+      where: { id: storeId },
+    });
+
+    if (!store) throw new Error("Store not found.");
+
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
+
+    // Retrieve products for the store
+    const products = await db.product.findMany({
+      where: { storeId },
+      include: {
+        category: true,
+        subCategory: true,
+        offerTag: true,
+        variants: {
+          include: {
+            colors: true,
+            sizes: true,
+          },
         },
       },
-      store: {
-        select: {
-          id: true,
-          url: true,
-        },
-      },
-    },
-  });
+      orderBy: { createdAt: "desc" },
+    });
 
-  return products;
+    return products;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Function: deleteProduct

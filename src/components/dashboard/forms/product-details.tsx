@@ -101,7 +101,7 @@ interface ProductDetailsProps {
   data?: Partial<ProductWithVariantType>;
   categories: Category[];
   offerTags: OfferTag[];
-  storeUrl: string;
+  storeId: string;
   countries: Country[];
 }
 
@@ -109,7 +109,7 @@ const ProductDetails: FC<ProductDetailsProps> = ({
   data,
   categories,
   offerTags,
-  storeUrl,
+  storeId,
   countries,
 }) => {
   // Initializing necessary hooks
@@ -211,13 +211,15 @@ const ProductDetails: FC<ProductDetailsProps> = ({
   });
 
   // UseEffect to get subCategories when user pick/change a category
+  const categoryId = form.watch("categoryId");
+
   useEffect(() => {
     const getSubCategories = async () => {
-      const res = await getAllCategoriesForCategory(form.watch().categoryId);
+      const res = await getAllCategoriesForCategory(categoryId);
       setSubCategories(res);
     };
     getSubCategories();
-  }, [form.watch().categoryId]);
+  }, [categoryId]);
 
   // Extract errors state from form
   const errors = form.formState.errors;
@@ -269,7 +271,7 @@ const ProductDetails: FC<ProductDetailsProps> = ({
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        storeUrl
+        storeId
       );
 
       // Displaying success message
@@ -284,7 +286,7 @@ const ProductDetails: FC<ProductDetailsProps> = ({
       if (data?.productId && data?.variantId) {
         router.refresh();
       } else {
-        router.push(`/dashboard/seller/stores/${storeUrl}/products`);
+        router.push(`/dashboard/seller/products`);
       }
     } catch (error: any) {
       // Handling form submission errors
@@ -321,7 +323,7 @@ const ProductDetails: FC<ProductDetailsProps> = ({
     form.setValue("product_specs", productSpecs);
     form.setValue("variant_specs", variantSpecs);
     form.setValue("questions", questions);
-  }, [colors, sizes, keywords, productSpecs, questions, variantSpecs, data]);
+  }, [colors, sizes, keywords, productSpecs, variantSpecs, questions, data, form]);
 
   //Countries options
   type CountryOption = {

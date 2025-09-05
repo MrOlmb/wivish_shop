@@ -1,7 +1,7 @@
 "use client";
 
 // React
-import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, FC, SetStateAction, useEffect, useState, useCallback } from "react";
 
 // Prisma model
 import { Country } from "@prisma/client";
@@ -85,9 +85,32 @@ const AddressDetails: FC<AddressDetailsProps> = ({
         ...data,
         address2: data.address2 || "",
       });
-      handleCountryChange(data?.country.name);
+      form.setValue("countryId", data?.country.id || "");
     }
   }, [data, form]);
+
+  const handleCountryValueChange = useCallback((countryId: string) => {
+    const selectedCountry = countries.find((c) => c.id === countryId);
+    if (selectedCountry) {
+      setCountry(selectedCountry.name);
+      form.setValue("countryId", selectedCountry.id);
+    }
+  }, [countries, form]);
+
+  const handleCountryChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCountry = countries.find((c) => c.id === event.target.value);
+    if (selectedCountry) {
+      setCountry(selectedCountry.name);
+      form.setValue("countryId", selectedCountry.id);
+    }
+  }, [countries, form]);
+
+  useEffect(() => {
+    if (countries.length > 0 && !country) {
+      const defaultCountry = countries[0];
+      handleCountryChange({ target: { value: defaultCountry.id } } as React.ChangeEvent<HTMLSelectElement>);
+    }
+  }, [countries, country, handleCountryChange]);
 
   // Submit handler for form submission
   const handleSubmit = async (
@@ -130,14 +153,6 @@ const AddressDetails: FC<AddressDetailsProps> = ({
         description: error.toString(),
       });
     }
-  };
-
-  const handleCountryChange = (name: string) => {
-    const country = countries.find((c) => c.name === name);
-    if (country) {
-      form.setValue("countryId", country.id);
-    }
-    setCountry(name);
   };
 
   return (
@@ -202,7 +217,7 @@ const AddressDetails: FC<AddressDetailsProps> = ({
                         id={"countries"}
                         open={isOpen}
                         onToggle={() => setIsOpen((prev) => !prev)}
-                        onChange={(val) => handleCountryChange(val)}
+                        onChange={(val) => handleCountryValueChange(val)}
                         selectedValue={
                           (countries.find(
                             (c) => c.name === country

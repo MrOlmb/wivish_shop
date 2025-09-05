@@ -12,7 +12,7 @@ import { Coupon } from "@prisma/client";
 //   - coupon: Coupon object containing details of the coupon to be upserted.
 //   - storeUrl: String representing the store's unique URL, used to retrieve the store ID.
 // Returns: Updated or newly created coupon details.
-export const upsertCoupon = async (coupon: Coupon, storeUrl: string) => {
+export const upsertCoupon = async (coupon: Coupon, storeId: string) => {
   try {
     // Get current user
     const user = await currentUser();
@@ -26,16 +26,19 @@ export const upsertCoupon = async (coupon: Coupon, storeUrl: string) => {
         "Unauthorized Access: Seller Privileges Required for Entry."
       );
 
-    // Ensure coupon data and storeUrl are provided
+    // Ensure coupon data and storeId are provided
     if (!coupon) throw new Error("Please provide coupon data.");
-    if (!storeUrl) throw new Error("Store URL is required.");
+    if (!storeId) throw new Error("Store ID is required.");
 
-    // Retrieve store ID using storeUrl
+    // Retrieve store using storeId and ensure it belongs to the current user
     const store = await db.store.findUnique({
-      where: { url: storeUrl },
+      where: { id: storeId },
     });
 
     if (!store) throw new Error("Store not found.");
+
+    if (store.userId !== user.id)
+      throw new Error("Unauthorized Access: You do not own this store.");
 
     // Throw error if a coupon with the same code and storeId already exists
     const existingCoupon = await db.coupon.findFirst({
@@ -74,12 +77,12 @@ export const upsertCoupon = async (coupon: Coupon, storeUrl: string) => {
 };
 
 // Function: getStoreCoupons
-// Description: Retrieves all coupons for a specific store based on the provided store URL.
+// Description: Retrieves all coupons for a specific store based on the provided store ID.
 // Permission Level: Seller only
 // Parameters:
-//   - storeUrl: String representing the store's unique URL, used to retrieve the store ID.
+//   - storeId: String representing the store's unique ID.
 // Returns: Array of coupon details for the specified store.
-export const getStoreCoupons = async (storeUrl: string) => {
+export const getStoreCoupons = async (storeId: string) => {
   try {
     // Get current user
     const user = await currentUser();
@@ -93,13 +96,13 @@ export const getStoreCoupons = async (storeUrl: string) => {
         "Unauthorized Access: Seller Privileges Required for Entry."
       );
 
-    // Ensure storeUrl is provided
-    if (!storeUrl) throw new Error("Store URL is required.");
+    // Ensure storeId is provided
+    if (!storeId) throw new Error("Store ID is required.");
 
-    // Retrieve store ID using storeUrl and ensure it belongs to the current user
+    // Retrieve store using storeId and ensure it belongs to the current user
     const store = await db.store.findUnique({
       where: {
-        url: storeUrl,
+        id: storeId,
       },
     });
 
@@ -151,10 +154,10 @@ export const getCoupon = async (couponId: string) => {
 // Permission Level: Seller only (must be the store owner)
 // Parameters:
 //   - couponId: The ID of the coupon to be deleted.
-//   - storeUrl: The URL of the store associated with the coupon.
+//   - storeId: The ID of the store associated with the coupon.
 // Returns: Response indicating success or failure of the deletion operation.
 
-export const deleteCoupon = async (couponId: string, storeUrl: string) => {
+export const deleteCoupon = async (couponId: string, storeId: string) => {
   try {
     // Get current user
     const user = await currentUser();
@@ -166,14 +169,14 @@ export const deleteCoupon = async (couponId: string, storeUrl: string) => {
     if (user.privateMetadata.role !== "SELLER")
       throw new Error("Unauthorized Access: Seller Privileges Required.");
 
-    // Ensure coupon ID and store URL are provided
-    if (!couponId || !storeUrl)
-      throw new Error("Please provide coupon ID and store URL.");
+    // Ensure coupon ID and store ID are provided
+    if (!couponId || !storeId)
+      throw new Error("Please provide coupon ID and store ID.");
 
-    // Get the store associated with the provided store URL
+    // Get the store associated with the provided store ID
     const store = await db.store.findUnique({
       where: {
-        url: storeUrl,
+        id: storeId,
       },
     });
 
