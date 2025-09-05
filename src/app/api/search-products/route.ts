@@ -19,9 +19,15 @@ export async function GET(req: Request) {
       },
       { status: 400 }
     );
-  }
+  } 
 
   try {
+    if (!client) {
+      return NextResponse.json(
+        { error: 'Elasticsearch client is not initialized' },
+        { status: 500 }
+      );
+    };
     // Search for products in Elasticsearch
     const searchResponse = await client.search({
       index: "products",
