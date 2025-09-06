@@ -15,6 +15,9 @@ import Image from "next/image";
 import FeaturedCategories from "@/components/store/home/featured-categories";
 import ProductCard from "@/components/store/cards/product/product-card";
 
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const productsData = await getProducts({}, "", 1, 100);
   const { products } = productsData;

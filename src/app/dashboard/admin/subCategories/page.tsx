@@ -8,6 +8,9 @@ import { getAllSubCategories } from "@/queries/subCategory";
 import { Plus } from "lucide-react";
 import { columns } from "./columns";
 
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 export default async function AdminSubCategoriesPage() {
   // Fetching subCategories data from the database
   const subCategories = await getAllSubCategories();

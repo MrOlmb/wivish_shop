@@ -6,6 +6,9 @@ import { FiltersQueryType } from "@/lib/types";
 import { getProducts } from "@/queries/product";
 import { getFilteredSizes } from "@/queries/size";
 
+// Force dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 export default async function BrowsePage({
   searchParams,
 }: {
