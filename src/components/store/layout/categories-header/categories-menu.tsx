@@ -3,7 +3,7 @@ import { Category } from "@prisma/client";
 import { ChevronDown, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState, useEffect, useCallback } from "react";
 
 export default function CategoriesMenu({
   categories,
@@ -16,7 +16,7 @@ export default function CategoriesMenu({
 }) {
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
 
-  const toggleMenu = (state: boolean) => {
+  const toggleMenu = useCallback((state: boolean) => {
     setOpen(state);
     // Delay showing the dropdown until the trigger has finished expanding
     if (state) {
@@ -26,20 +26,70 @@ export default function CategoriesMenu({
     } else {
       setDropdownVisible(false);
     }
+  }, [setOpen]);
+
+  const handleClick = () => {
+    toggleMenu(!open);
   };
+
+  const handleMouseEnter = () => {
+    if (!open) {
+      toggleMenu(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (open) {
+      toggleMenu(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    } else if (e.key === 'Escape' && open) {
+      toggleMenu(false);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (open && !target.closest('.categories-menu-container')) {
+        toggleMenu(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, toggleMenu]);
 
   return (
     <div
-      className="relative w-10 h-10 xl:w-[256px] z-50"
-      // onMouseEnter={() => toggleMenu(true)}
-      // onMouseLeave={() => toggleMenu(false)}
+      className="relative w-10 h-10 xl:w-[256px] z-50 categories-menu-container"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Trigger and Dropdown Container */}
       <div className="relative">
         {/* Trigger */}
         <div
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          role="button"
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="All Categories Menu"
           className={cn(
-            "w-12 xl:w-[256px] h-12 rounded-full -translate-y-1 xl:translate-y-0 xl:h-11 bg-[#535353] text-white text-[20px] relative flex items-center cursor-pointer transition-all duration-100 ease-in-out",
+            "w-12 xl:w-[256px] h-12 rounded-full -translate-y-1 xl:translate-y-0 xl:h-11 bg-[#535353] text-white text-[20px] relative flex items-center cursor-pointer transition-all duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
             {
               "w-[256px] bg-[#f5f5f5] text-black text-base rounded-t-[20px] rounded-b-none scale-100":
                 open,
@@ -72,33 +122,43 @@ export default function CategoriesMenu({
         {/* Dropdown */}
         <ul
           className={cn(
-            "absolute top-10 left-0 w-[256px] bg-[#f5f5f5] shadow-lg transition-all duration-100 ease-in-out scrollbar overflow-y-auto",
+            "absolute top-10 left-0 w-[256px] bg-[#f5f5f5] shadow-lg transition-all duration-200 ease-in-out scrollbar overflow-y-auto rounded-b-lg",
             {
-              "max-h-[523px] opacity-100": dropdownVisible, // Show dropdown
-              "max-h-0 opacity-0": !dropdownVisible, // Hide dropdown
+              "max-h-[523px] opacity-100 pointer-events-auto": dropdownVisible, // Show dropdown
+              "max-h-0 opacity-0 pointer-events-none": !dropdownVisible, // Hide dropdown
             }
           )}
         >
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/browse?category=${category.url}`}
-              className="text-[#222]"
-            >
-              <li className="relative flex items-center m-0 p-3 pl-6 hover:bg-white">
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  width={100}
-                  height={100}
-                  className="w-[18px] h-[18px]"
-                />
-                <span className="text-sm font-normal ml-2 overflow-hidden line-clamp-2 break-words text-main-primary">
-                  {category.name}
-                </span>
-              </li>
-            </Link>
-          ))}
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/browse?category=${category.url}`}
+                className="text-[#222] block"
+                onClick={() => {
+                  // Close dropdown when a category is clicked
+                  toggleMenu(false);
+                }}
+              >
+                <li className="relative flex items-center m-0 p-3 pl-6 hover:bg-white transition-colors duration-150">
+                  <Image
+                    src={category.image}
+                    alt={category.name}
+                    width={18}
+                    height={18}
+                    className="w-[18px] h-[18px] flex-shrink-0"
+                  />
+                  <span className="text-sm font-normal ml-2 overflow-hidden line-clamp-2 break-words text-main-primary">
+                    {category.name}
+                  </span>
+                </li>
+              </Link>
+            ))
+          ) : (
+            <li className="p-3 pl-6 text-sm text-gray-500">
+              No categories available
+            </li>
+          )}
         </ul>
       </div>
     </div>

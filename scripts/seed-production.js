@@ -278,11 +278,17 @@ async function seedDatabase() {
       console.log('   You may need to manually assign the store to an admin user.');
     }
 
-    console.log('🎉 Production database seeding completed successfully!');
-    console.log(`📊 Summary:`);
+    // Import and run product seeding
+    console.log('🛍️  Starting product seeding...');
+    const { seedProducts } = require('./seed-products-production');
+    await seedProducts();
+
+    console.log('🎉 Complete production database seeding finished!');
+    console.log(`📊 Final Summary:`);
     console.log(`   - Store: ${store.name}`);
     console.log(`   - Categories: ${totalCategories}`);
     console.log(`   - SubCategories: ${totalSubCategories}`);
+    console.log(`   - Products: Seeded with variants, sizes, colors, and images`);
 
   } catch (error) {
     console.error('❌ Error during seeding:', error);

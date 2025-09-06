@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed-production.js",
+    "seed:categories": "node scripts/seed-production.js",
+    "seed:products": "node scripts/seed-products-production.js",
     "db:push": "prisma db push",
     "db:generate": "prisma generate"
   },
