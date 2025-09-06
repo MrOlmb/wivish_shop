@@ -5,8 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:prod": "prisma generate && node scripts/seed-production.js && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "node scripts/seed-production.js",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.9.6",
