@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "build:prod": "prisma generate && node scripts/seed-production.js && next build",
+    "build": "prisma generate && prisma db push && next build",
+    "build:prod": "prisma generate && prisma db push && node scripts/seed-production.js && next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed-production.js",
